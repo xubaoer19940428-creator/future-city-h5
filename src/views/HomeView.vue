@@ -1,0 +1,355 @@
+<template>
+  <main class="home-page" data-node-id="68:2773">
+    <div class="background" aria-hidden="true">
+      <div class="background__layer background__layer--back">
+        <img src="/assets/bg-clean.png" alt="" />
+      </div>
+      <div class="background__layer background__layer--front">
+        <img src="/assets/bg-layer-front.png" alt="" />
+      </div>
+    </div>
+
+    <img
+      class="brand-logo"
+      src="/assets/logo.png"
+      alt="未来科学城集团"
+      data-node-id="68:2780"
+    />
+
+    <h1 class="sr-only">我的未来科学城 MBTI</h1>
+    <div class="title-art" data-node-id="68:2791" aria-hidden="true">
+      <img src="/assets/title-graphic.png" alt="" />
+    </div>
+
+    <div class="star star--one" aria-hidden="true" data-node-id="68:2792">
+      <img src="/assets/figma-star-1.svg" alt="" />
+    </div>
+    <div class="star star--two" aria-hidden="true" data-node-id="68:2793">
+      <img src="/assets/figma-star-2.svg" alt="" />
+    </div>
+
+    <div class="tagline tagline--lead" data-node-id="68:2794">
+      <p>测一测</p>
+    </div>
+    <div class="tagline tagline--question" data-node-id="68:2795">
+      <p>你的基因里藏着怎样的未来？</p>
+    </div>
+
+    <RouterLink
+      class="start-button"
+      to="/quiz"
+      data-node-id="68:2788"
+      aria-label="开始未来科学城 MBTI 测试"
+      @click="playBackgroundAudio"
+    >
+      <span>点击测试</span>
+    </RouterLink>
+  </main>
+</template>
+
+<script setup>
+import { inject } from 'vue';
+
+const backgroundAudio = inject('backgroundAudio', null);
+
+const playBackgroundAudio = () => {
+  backgroundAudio?.play();
+};
+</script>
+
+<style scoped>
+.home-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #4cb5f7;
+  isolation: isolate;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.background__layer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  -webkit-mask-image: url('/assets/bg-mask.svg');
+  mask-image: url('/assets/bg-mask.svg');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.background__layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.background__layer--back {
+  top: -0.89%;
+  width: 121.54%;
+  height: 106.71%;
+  -webkit-mask-position: center top;
+  mask-position: center top;
+  -webkit-mask-size: 82.28% 94.54%;
+  mask-size: 82.28% 94.54%;
+}
+
+.background__layer--front {
+  top: -1.14%;
+  width: 115.38%;
+  height: 101.14%;
+  -webkit-mask-position: center bottom;
+  mask-position: center bottom;
+  -webkit-mask-size: 86.67% 99.75%;
+  mask-size: 86.67% 99.75%;
+}
+
+.brand-logo {
+  position: absolute;
+  top: 5.44%;
+  left: 50%;
+  z-index: 20;
+  width: 23.08%;
+  height: auto;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.title-art {
+  position: absolute;
+  top: 9.11%;
+  left: -1.28%;
+  z-index: 20;
+  width: 102.56%;
+  height: auto;
+  aspect-ratio: 400 / 270;
+  overflow: hidden;
+  filter: drop-shadow(0 0 15px #62bcff);
+  pointer-events: none;
+}
+
+.title-art img {
+  position: absolute;
+  top: -10.93%;
+  left: 0;
+  width: 100%;
+  height: 111.11%;
+  max-width: none;
+}
+
+.star {
+  position: absolute;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.star img {
+  display: block;
+  width: 108.55%;
+  height: 108.55%;
+  max-width: none;
+}
+
+.star--one {
+  top: 12.91%;
+  left: 84.1%;
+  width: 7.85%;
+  aspect-ratio: 1;
+}
+
+.star--one img {
+  transform: rotate(-15deg);
+}
+
+.star--two {
+  top: 33.68%;
+  left: 10.53%;
+  width: 6.28%;
+  aspect-ratio: 1;
+}
+
+.star--two img {
+  transform: rotate(15deg);
+}
+
+.tagline {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.tagline p {
+  margin: 0;
+  color: #00435a;
+  font-family: 'PangMenZhengDao-Cu', 'Ma Shan Zheng', cursive;
+  font-weight: 400;
+  line-height: normal;
+  white-space: nowrap;
+  transform: rotate(-4deg);
+  transform-origin: center;
+  will-change: transform, filter;
+  animation: tagline-breathe 2.8s ease-in-out infinite;
+}
+
+.tagline--lead {
+  top: 39.87%;
+  left: 6.41%;
+  width: 28.52%;
+  height: 6.8%;
+}
+
+.tagline--lead p {
+  font-size: 36px;
+}
+
+.tagline--question {
+  top: 45.06%;
+  left: 9.74%;
+  width: 87.1%;
+  height: 7.05%;
+}
+
+.tagline--question p {
+  font-size: 26px;
+  animation-delay: 180ms;
+}
+
+.start-button {
+  position: absolute;
+  top: 83.54%;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76.92%;
+  height: 50px;
+  padding: 0;
+  border: 1px solid #fff;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #279bff 0%, #40b6ff 100%);
+  box-shadow: inset 0 0 6px #bce1ff;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 150ms ease, transform 150ms ease;
+  transform: translateX(-50%);
+  isolation: isolate;
+  will-change: transform;
+  animation: button-breathe 2.6s ease-in-out infinite;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-button::before {
+  position: absolute;
+  inset: -7px;
+  z-index: -1;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: inherit;
+  box-shadow: 0 0 16px rgb(39 155 255 / 35%);
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+  animation: button-halo 2.6s ease-out infinite;
+}
+
+.start-button span {
+  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: normal;
+  -webkit-text-stroke: 1px #002936;
+  paint-order: stroke fill;
+  text-shadow: 0 1px 1px rgb(0 41 54 / 35%);
+}
+
+.start-button:active {
+  animation: none;
+  filter: brightness(0.96);
+  transform: translateX(-50%) scale(0.98);
+}
+
+.start-button:focus-visible {
+  outline: 3px solid rgb(255 255 255 / 80%);
+  outline-offset: 3px;
+}
+
+@keyframes tagline-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 1px 1px rgb(255 255 255 / 24%));
+    transform: rotate(-4deg) scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 2px 3px rgb(255 255 255 / 66%));
+    transform: rotate(-4deg) scale(1.04);
+  }
+}
+
+@keyframes button-breathe {
+  0%,
+  100% {
+    box-shadow: inset 0 0 6px #bce1ff, 0 6px 16px rgb(0 110 200 / 16%);
+    transform: translateX(-50%) scale(1);
+  }
+
+  50% {
+    box-shadow: inset 0 0 9px #d8efff, 0 10px 25px rgb(0 110 200 / 34%);
+    transform: translateX(-50%) scale(1.025);
+  }
+}
+
+@keyframes button-halo {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  42% {
+    opacity: 0.55;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@media (max-width: 389px) {
+  .tagline--lead p {
+    font-size: clamp(32px, 9.23vw, 36px);
+  }
+
+  .tagline--question p {
+    font-size: clamp(23px, 6.67vw, 26px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tagline,
+  .tagline p,
+  .start-button,
+  .start-button::before {
+    animation: none;
+  }
+
+  .start-button {
+    transition: none;
+  }
+}
+</style>

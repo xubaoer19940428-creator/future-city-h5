@@ -1,0 +1,111 @@
+<template>
+  <div class="w-full h-full min-h-dvh flex justify-center items-center bg-[#0b1d2c]">
+    <div class="w-full h-full sm:h-[844px] max-w-[390px] relative overflow-hidden bg-[#4cb5f7] flex flex-col sm:rounded-[28px] sm:shadow-2xl">
+      <router-view />
+      <button
+        class="global-audio-control"
+        type="button"
+        data-audio-control
+        :aria-label="isAudioPlaying ? '暂停背景音乐' : '播放背景音乐'"
+        :aria-pressed="isAudioPlaying"
+        @click="toggleAudio"
+      >
+        <img src="/assets/nav-music.svg" alt="" />
+      </button>
+      <audio
+        ref="backgroundAudio"
+        src="/media/football.mp3"
+        preload="auto"
+        autoplay
+        loop
+        playsinline
+        hidden
+        aria-hidden="true"
+        @play="isAudioPlaying = true"
+        @pause="isAudioPlaying = false"
+      ></audio>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, provide, ref } from 'vue';
+
+const backgroundAudio = ref(null);
+const isAudioPlaying = ref(false);
+let playAttempt = 0;
+let userPaused = false;
+
+const playAudio = async () => {
+  if (!backgroundAudio.value || userPaused) return;
+
+  const attempt = ++playAttempt;
+
+  try {
+    await backgroundAudio.value.play();
+
+    if (userPaused) {
+      backgroundAudio.value.pause();
+      return;
+    }
+
+    if (attempt !== playAttempt) return;
+  } catch {
+    // The home CTA retries playback from an explicit user interaction.
+  }
+};
+
+const toggleAudio = () => {
+  if (!backgroundAudio.value) return;
+
+  if (backgroundAudio.value.paused) {
+    userPaused = false;
+    void playAudio();
+    return;
+  }
+
+  userPaused = true;
+  playAttempt += 1;
+  backgroundAudio.value.pause();
+};
+
+provide('backgroundAudio', {
+  play: playAudio
+});
+
+onMounted(() => {
+  backgroundAudio.value.volume = 0.45;
+  void playAudio();
+});
+</script>
+
+<style scoped>
+.global-audio-control {
+  position: absolute;
+  top: 14px;
+  right: 48px;
+  z-index: 100;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.global-audio-control img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.global-audio-control[aria-pressed='true'] img {
+  filter: drop-shadow(0 0 4px rgb(255 255 255 / 80%));
+}
+
+.global-audio-control:focus-visible {
+  outline: 3px solid rgb(255 255 255 / 75%);
+  outline-offset: 3px;
+}
+</style>
