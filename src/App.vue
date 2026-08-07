@@ -1,7 +1,13 @@
 <template>
-  <div class="w-full h-full min-h-dvh flex justify-center items-center bg-[#0b1d2c]">
-    <div class="w-full h-full sm:h-[844px] max-w-[390px] relative overflow-hidden bg-[#4cb5f7] flex flex-col sm:rounded-[28px] sm:shadow-2xl">
-      <router-view />
+  <div class="w-full h-full min-h-dvh flex justify-center items-center bg-[#4cb5f7]">
+    <div class="app-shell w-full h-full relative overflow-hidden bg-[#4cb5f7] flex flex-col">
+      <router-view v-slot="{ Component, route }">
+        <Transition name="deck" mode="out-in" appear>
+          <div :key="route.fullPath" class="route-stage">
+            <component :is="Component" />
+          </div>
+        </Transition>
+      </router-view>
       <button
         class="global-audio-control"
         type="button"
@@ -80,6 +86,45 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.app-shell {
+  width: 100%;
+  max-width: none;
+  perspective: 1200px;
+}
+
+.route-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+.deck-enter-active {
+  transition:
+    clip-path 760ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 600ms ease-out,
+    transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.deck-leave-active {
+  transition:
+    opacity 260ms ease-out,
+    transform 320ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.deck-enter-from {
+  clip-path: inset(0 0 0 9%);
+  opacity: 0;
+  transform: translate3d(7%, 0, -36px) rotateY(-2deg) scale(0.985);
+}
+
+.deck-leave-to {
+  opacity: 0;
+  transform: translate3d(-4%, 0, -44px) rotateY(1.5deg) scale(0.985);
+}
+
 .global-audio-control {
   position: absolute;
   top: 14px;
@@ -107,5 +152,19 @@ onMounted(() => {
 .global-audio-control:focus-visible {
   outline: 3px solid rgb(255 255 255 / 75%);
   outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-enter-active,
+  .deck-leave-active {
+    transition: opacity 160ms ease-out;
+  }
+
+  .deck-enter-from,
+  .deck-leave-to {
+    clip-path: none;
+    opacity: 0;
+    transform: none;
+  }
 }
 </style>

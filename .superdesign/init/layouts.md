@@ -1,4 +1,3 @@
 # Layouts
 
-`src/App.vue` is the global shell. It centers a mobile canvas, fills the viewport on phones, and uses a 480px maximum width with an 844px framed height on larger screens. Routed pages render through `<router-view />`.
-
+`src/App.vue` is the global shell. It fills the complete viewport without a mobile maximum width. Routed pages render through `<router-view />`, and the global looping audio control stays above every route.

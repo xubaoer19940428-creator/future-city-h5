@@ -1,5 +1,5 @@
 <template>
-  <main class="home-page" data-node-id="68:2773">
+  <main ref="homeRoot" class="home-page" data-node-id="68:2773">
     <div class="background" aria-hidden="true">
       <div class="background__layer background__layer--back">
         <img src="/assets/bg-clean.png" alt="" />
@@ -48,13 +48,76 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import { gsap } from 'gsap';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 
 const backgroundAudio = inject('backgroundAudio', null);
+const homeRoot = ref(null);
+let animationContext;
 
 const playBackgroundAudio = () => {
   backgroundAudio?.play();
 };
+
+onMounted(() => {
+  animationContext = gsap.context(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const intro = gsap.timeline({ defaults: { ease: 'power3.out' } }).timeScale(0.72);
+
+    intro
+      .from('.background__layer--back', {
+        autoAlpha: 0,
+        scale: 1.08,
+        duration: 1.2,
+        clearProps: 'transform,opacity,visibility'
+      }, 0)
+      .from('.background__layer--front', {
+        autoAlpha: 0,
+        scale: 1.12,
+        yPercent: 3,
+        duration: 1.15,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.12)
+      .from('.brand-logo', {
+        autoAlpha: 0,
+        y: -20,
+        duration: 0.58,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.18)
+      .from('.title-art', {
+        autoAlpha: 0,
+        y: 24,
+        scale: 0.94,
+        duration: 0.82,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.34)
+      .from('.star', {
+        autoAlpha: 0,
+        scale: 0.72,
+        rotation: -18,
+        duration: 0.5,
+        stagger: 0.1,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.72)
+      .from('.tagline', {
+        autoAlpha: 0,
+        y: 18,
+        duration: 0.56,
+        stagger: 0.1,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.84)
+      .from('.start-button', {
+        autoAlpha: 0,
+        duration: 0.48,
+        clearProps: 'opacity,visibility'
+      }, 1.12);
+  }, homeRoot.value);
+});
+
+onUnmounted(() => {
+  animationContext?.revert();
+});
 </script>
 
 <style scoped>
@@ -122,6 +185,7 @@ const playBackgroundAudio = () => {
   height: auto;
   transform: translateX(-50%);
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .title-art {
@@ -135,6 +199,7 @@ const playBackgroundAudio = () => {
   overflow: hidden;
   filter: drop-shadow(0 0 15px #62bcff);
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .title-art img {
@@ -195,7 +260,7 @@ const playBackgroundAudio = () => {
 .tagline p {
   margin: 0;
   color: #00435a;
-  font-family: 'PangMenZhengDao-Cu', 'Ma Shan Zheng', cursive;
+  font-family: 'Resource Han Rounded CN', 'PangMenZhengDao-Cu', 'Ma Shan Zheng', cursive;
   font-weight: 400;
   line-height: normal;
   white-space: nowrap;
@@ -268,7 +333,7 @@ const playBackgroundAudio = () => {
 }
 
 .start-button span {
-  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 16px;
   font-weight: 600;
   line-height: normal;

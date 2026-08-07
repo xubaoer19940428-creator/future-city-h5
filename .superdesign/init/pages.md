@@ -16,8 +16,24 @@
 ## Quiz placeholder (`/quiz`)
 
 - `src/views/QuizPlaceholderView.vue`
+- `src/components/QuizSelect.vue`
 - `src/App.vue`
 - `src/router/index.js`
 - `src/styles/main.css`
 - `tailwind.config.js`
 
+## Timeline (`/timeline`)
+
+- `src/views/TimelineView.vue`
+- `src/App.vue`
+- `src/router/index.js`
+- `src/styles/main.css`
+- `tailwind.config.js`
+
+## Result (`/result`)
+
+- `src/views/ResultView.vue`
+- `src/App.vue`
+- `src/router/index.js`
+- `src/styles/main.css`
+- `tailwind.config.js`

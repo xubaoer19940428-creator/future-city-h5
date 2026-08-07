@@ -118,7 +118,7 @@ const year = ref(
 );
 
 let animationContext;
-let copyTimeline;
+let sceneTimeline;
 let reduceMotionQuery;
 let prefersReducedMotion = false;
 
@@ -137,36 +137,106 @@ const startJourney = () => {
   });
 };
 
-const resetCopyStyles = () => {
-  [introCopy.value, formCopy.value].forEach((container) => {
-    if (!container) return;
-    gsap.set(container.querySelectorAll('p'), { clearProps: 'all' });
-  });
+const resetSceneStyles = () => {
+  if (!quizRoot.value) return;
+
+  gsap.set(
+    quizRoot.value.querySelectorAll(
+      '.scene-image, .intro-title, .intro-copy p, .swipe-hint, .form-heading > *, .form-copy p, .profile-form > *'
+    ),
+    { clearProps: 'all' }
+  );
 };
 
-const animateCopy = (container, delay = 0) => {
-  if (!container || !animationContext) return;
+const animateStep = (step, delay = 0) => {
+  if (!animationContext || !quizRoot.value) return;
 
-  copyTimeline?.kill();
+  sceneTimeline?.kill();
+  resetSceneStyles();
 
   if (prefersReducedMotion) {
-    resetCopyStyles();
     return;
   }
 
+  const slide = quizRoot.value.querySelector(
+    step === 0 ? '.quiz-slide--intro' : '.quiz-slide--form'
+  );
+  if (!slide) return;
+
   animationContext.add(() => {
-    copyTimeline = gsap.timeline({ delay, defaults: { ease: 'power2.out' } }).fromTo(
-      container.querySelectorAll('p'),
-      { autoAlpha: 0, y: 12, filter: 'blur(5px)' },
-      {
-        autoAlpha: 1,
-        y: 0,
-        filter: 'blur(0px)',
-        duration: 0.55,
-        stagger: 0.08,
-        clearProps: 'transform,filter,visibility,opacity'
-      }
-    );
+    sceneTimeline = gsap
+      .timeline({ delay, defaults: { ease: 'power3.out' } })
+      .timeScale(0.72);
+    sceneTimeline.from(slide.querySelector('.scene-image'), {
+      scale: 1.06,
+      duration: 1.05,
+      clearProps: 'transform'
+    }, 0);
+
+    if (step === 0) {
+      sceneTimeline
+        .from(slide.querySelector('.intro-title'), {
+          autoAlpha: 0,
+          y: -22,
+          duration: 0.58,
+          clearProps: 'transform,opacity,visibility'
+        }, 0.08)
+        .fromTo(
+          introCopy.value?.querySelectorAll('p'),
+          { autoAlpha: 0, y: 13, filter: 'blur(4px)' },
+          {
+            autoAlpha: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            duration: 0.5,
+            stagger: 0.075,
+            clearProps: 'transform,filter,visibility,opacity'
+          },
+          0.26
+        )
+        .from(slide.querySelector('.swipe-hint'), {
+          autoAlpha: 0,
+          x: -18,
+          duration: 0.42,
+          clearProps: 'transform,opacity,visibility'
+        }, 0.82);
+      return;
+    }
+
+    sceneTimeline
+      .from(slide.querySelectorAll('.form-heading > *'), {
+        autoAlpha: 0,
+        x: -22,
+        duration: 0.5,
+        stagger: 0.07,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.05)
+      .fromTo(
+        formCopy.value?.querySelectorAll('p'),
+        { autoAlpha: 0, y: 12, filter: 'blur(4px)' },
+        {
+          autoAlpha: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          duration: 0.48,
+          stagger: 0.075,
+          clearProps: 'transform,filter,visibility,opacity'
+        },
+        0.28
+      )
+      .from(slide.querySelectorAll('.select-field'), {
+        autoAlpha: 0,
+        y: 24,
+        scale: 0.985,
+        duration: 0.52,
+        stagger: 0.1,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.56)
+      .from(slide.querySelector('.journey-button'), {
+        autoAlpha: 0,
+        duration: 0.44,
+        clearProps: 'opacity,visibility'
+      }, 0.76);
   });
 };
 
@@ -174,12 +244,12 @@ const onMotionPreferenceChange = (event) => {
   prefersReducedMotion = event.matches;
 
   if (prefersReducedMotion) {
-    copyTimeline?.kill();
-    resetCopyStyles();
+    sceneTimeline?.kill();
+    resetSceneStyles();
     return;
   }
 
-  animateCopy(currentStep.value === 0 ? introCopy.value : formCopy.value);
+  animateStep(currentStep.value);
 };
 
 const goBack = () => {
@@ -208,7 +278,7 @@ const onTouchEnd = (event) => {
 
 watch(currentStep, async (step) => {
   await nextTick();
-  animateCopy(step === 0 ? introCopy.value : formCopy.value, step === 1 ? 0.18 : 0.06);
+  animateStep(step, step === 1 ? 0.16 : 0.04);
 });
 
 onMounted(() => {
@@ -216,11 +286,11 @@ onMounted(() => {
   prefersReducedMotion = reduceMotionQuery.matches;
   reduceMotionQuery.addEventListener('change', onMotionPreferenceChange);
   animationContext = gsap.context(() => {}, quizRoot.value);
-  animateCopy(introCopy.value, 0.08);
+  animateStep(currentStep.value, 0.08);
 });
 
 onUnmounted(() => {
-  copyTimeline?.kill();
+  sceneTimeline?.kill();
   animationContext?.revert();
   reduceMotionQuery?.removeEventListener('change', onMotionPreferenceChange);
 });
@@ -277,6 +347,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  will-change: transform;
 }
 
 .form-tint {
@@ -309,6 +380,7 @@ onUnmounted(() => {
   text-align: center;
   white-space: pre;
   transform: translateX(-50%);
+  will-change: transform, opacity;
 }
 
 .intro-copy {
@@ -317,7 +389,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: 310px;
+  width: min(310px, calc(100% - 40px));
   font-family: var(--rounded-display);
   font-size: 20px;
   font-weight: 800;
@@ -346,7 +418,7 @@ onUnmounted(() => {
   border: 0;
   background: transparent;
   color: #171717;
-  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 14px;
   line-height: 20px;
   cursor: pointer;
@@ -455,10 +527,11 @@ onUnmounted(() => {
 .form-copy {
   top: 266px;
   left: 20px;
+  right: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 350px;
+  width: auto;
   font-family: var(--rounded-display);
   font-size: 18px;
   font-weight: 800;
@@ -478,7 +551,8 @@ onUnmounted(() => {
 .select-field {
   position: absolute;
   left: 20px;
-  width: 350px;
+  right: 20px;
+  width: auto;
   height: 60px;
 }
 
@@ -494,10 +568,11 @@ onUnmounted(() => {
   position: absolute;
   top: 714px;
   left: 35px;
+  right: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 320px;
+  width: auto;
   height: 50px;
   padding: 0;
   border: 1px solid #fff;
@@ -505,7 +580,7 @@ onUnmounted(() => {
   background: linear-gradient(180deg, #279bff 0%, #40b6ff 100%);
   box-shadow: inset 0 0 6px #bce1ff;
   color: #fff;
-  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 16px;
   font-weight: 600;
   line-height: normal;

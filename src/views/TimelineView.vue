@@ -3,7 +3,7 @@
     <Swiper
       class="timeline-swiper"
       :initial-slide="initialIndex"
-      :speed="420"
+      :speed="720"
       :allow-touch-move="true"
       @swiper="onSwiperReady"
       @slide-change="onSlideChange"
@@ -86,7 +86,7 @@
       </button>
     </nav>
 
-    <button class="result-link" type="button" disabled aria-label="结果页待补充">
+    <button class="result-link" type="button" @click="showResult">
       直接查看结果 <span aria-hidden="true">》</span>
     </button>
   </main>
@@ -564,6 +564,126 @@ const knownTimeline = {
         ]
       }
     ]
+  },
+  2025: {
+    title: '跨越',
+    subtitle: '稳中求进，蓄势新程',
+    background: '/assets/timeline-bg-park.png',
+    plan: '/assets/timeline-plan-2025.jpg',
+    planFit: 'cover',
+    planRotation: 11.49,
+    events: [
+      {
+        month: '3月—4月',
+        lines: [
+          '未来科学城能源谷首个标准厂房项目',
+          '未来星科能源谷智造产业园一期投用',
+          '二期1#厂房创全区首个',
+          '“多测合一+竣工即交证”项目范例'
+        ]
+      },
+      {
+        month: '6月',
+        lines: [
+          '“北四村”、创新基地2049户村民回迁',
+          '7978套安置房“零延误”交付',
+          '至此，集团实施的11个村共计213万平方',
+          '米安置房全部竣工交房'
+        ]
+      },
+      {
+        month: '7月',
+        lines: [
+          '未来科学城首次规模化应用部署',
+          '4亿像素全景智能视频监控系统',
+          '引领国内城市治理场景先河'
+        ]
+      },
+      {
+        month: '9月',
+        lines: ['北京温榆河公园·未来智谷二期开园']
+      },
+      {
+        month: '10月',
+        lines: [
+          '北京市昌平区合成生物制造产业集群',
+          '获评全国首个合成生物制造领域',
+          '国家级中小企业特色产业集群'
+        ]
+      },
+      {
+        month: '11月',
+        lines: ['昌平首家山姆会员店正式开业']
+      },
+      {
+        month: '11月',
+        lines: [
+          '集团联合开发的北京市首个政府侧区域级',
+          '能碳监测管理平台正式上线'
+        ]
+      },
+      {
+        month: '12月',
+        lines: ['清华南口国重基地成果转化资金支持', '体系发布，共建概念验证中心']
+      },
+      {
+        month: '12月',
+        lines: ['未来科学城科技文化交流中心项目正式启动']
+      },
+      {
+        month: '12月',
+        lines: [
+          '北京市政府办公厅',
+          '国务院国资委办公厅联合印发《关于进一步',
+          '促进中央企业加快建设未来科学城行动方案',
+          '（2026-2028年）》'
+        ]
+      }
+    ]
+  },
+  2026: {
+    title: '此刻',
+    subtitle: '你在这里，我们一起向前',
+    background: '/assets/timeline-bg-park.png',
+    plan: '/assets/timeline-plan-2026.jpg',
+    planFit: 'cover',
+    planRotation: 11.49,
+    events: [
+      {
+        month: '3月',
+        lines: [
+          '未来科学城能源谷首座“第四代好房子”',
+          '未来城·星寰时代正式亮相并开放样板间'
+        ]
+      },
+      {
+        month: '5月',
+        lines: ['昌平千帆音乐公园顺利首秀', '服务千帆音乐季·2026微博大眼音乐节']
+      },
+      {
+        month: '7月',
+        lines: ['集团自建自营的产业标杆项目', '北京市机器人产业园（昌平）正式开园']
+      },
+      {
+        month: '7月',
+        lines: [
+          '全国高校合成生物区域技术转移转化中心',
+          '（北京）正式获教育部批复建设'
+        ]
+      },
+      {
+        month: '7月',
+        lines: ['未来溪谷滨河商业休闲街正式对外开放']
+      },
+      {
+        month: '7月28日',
+        lines: ['未来科学城17周岁']
+      },
+      {
+        month: '8月21日',
+        lines: ['未来科学城集团17周岁', '十七年，是一座城的序章，故事还在继续']
+      }
+    ]
   }
 };
 
@@ -609,7 +729,10 @@ const animateActiveEvents = async () => {
   const panel = activeSlide?.querySelector('.events-panel');
   const track = activeSlide?.querySelector('.events-track');
   const parts = activeSlide?.querySelectorAll('[data-event-part]');
-  if (!panel || !track || !parts?.length) return;
+  const background = activeSlide?.querySelector('.timeline-slide__background');
+  const headingParts = activeSlide?.querySelectorAll('.year-heading > *');
+  const planCard = activeSlide?.querySelector('.plan-card');
+  if (!panel || !track || !parts?.length || !background || !headingParts?.length || !planCard) return;
 
   eventTimeline?.kill();
   panel.scrollTop = 0;
@@ -621,22 +744,50 @@ const animateActiveEvents = async () => {
 
   animationContext?.add(() => {
     gsap.set(track, { y: 0 });
-    gsap.set(parts, { clearProps: 'all' });
+    gsap.set(background, { clearProps: 'transform,opacity,visibility' });
+    gsap.set(planCard, { clearProps: 'transform,opacity,visibility' });
+    gsap.set([...headingParts, ...parts], {
+      clearProps: 'transform,filter,opacity,visibility'
+    });
     if (prefersReducedMotion) return;
 
-    eventTimeline = gsap.timeline({ defaults: { ease: 'power2.out' } });
-    eventTimeline.fromTo(
-      parts,
-      { autoAlpha: 0, y: 10, filter: 'blur(4px)' },
-      {
-        autoAlpha: 1,
-        y: 0,
-        filter: 'blur(0px)',
-        duration: revealDuration,
-        stagger: revealStagger,
-        clearProps: 'transform,filter,visibility,opacity'
-      }
-    );
+    eventTimeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    eventTimeline
+      .from(background, {
+        autoAlpha: 0.72,
+        scale: 1.08,
+        duration: 1.55,
+        clearProps: 'transform,opacity,visibility'
+      }, 0)
+      .from(headingParts, {
+        autoAlpha: 0,
+        x: -26,
+        duration: 0.78,
+        stagger: 0.12,
+        clearProps: 'transform,opacity,visibility'
+      }, 0.12)
+      .from(planCard, {
+        autoAlpha: 0,
+        x: 64,
+        y: 36,
+        rotation: '-=8',
+        duration: 1.12,
+        ease: 'back.out(1.25)',
+        clearProps: 'transform,opacity,visibility'
+      }, 0.45)
+      .fromTo(
+        parts,
+        { autoAlpha: 0, y: 10, filter: 'blur(4px)' },
+        {
+          autoAlpha: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          duration: revealDuration,
+          stagger: revealStagger,
+          clearProps: 'transform,filter,visibility,opacity'
+        },
+        0.58
+      );
 
     if (overflow > 0) {
       eventTimeline.to(
@@ -646,7 +797,7 @@ const animateActiveEvents = async () => {
           duration: Math.max(revealSpan, overflow / 24),
           ease: 'none'
         },
-        0.9
+        1.5
       );
     }
   });
@@ -673,6 +824,16 @@ const goBack = () => {
     name: 'Quiz',
     query: {
       step: 'profile',
+      year: String(FIRST_YEAR + currentIndex.value),
+      ...(typeof route.query.identity === 'string' ? { identity: route.query.identity } : {})
+    }
+  });
+};
+
+const showResult = () => {
+  router.push({
+    name: 'Result',
+    query: {
       year: String(FIRST_YEAR + currentIndex.value),
       ...(typeof route.query.identity === 'string' ? { identity: route.query.identity } : {})
     }
@@ -798,8 +959,7 @@ onUnmounted(() => {
 .events-track {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  will-change: transform;
+  gap: 14px;
 }
 
 .events-panel:focus-visible {
@@ -812,7 +972,7 @@ onUnmounted(() => {
 }
 
 .event-month {
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   color: #fff500;
   font-size: 28px;
   line-height: 1.2;
@@ -824,9 +984,13 @@ onUnmounted(() => {
   line-height: 1.35;
 }
 
+.event-copy + .event-copy {
+  margin-top: 4px;
+}
+
 .plan-card {
   top: 500px;
-  left: 117px;
+  left: calc(50% - 78px);
   width: 266px;
   height: 285px;
   padding: 14px 14px 44px;
@@ -837,6 +1001,13 @@ onUnmounted(() => {
   box-shadow: 0 16px 28px rgb(0 66 99 / 24%);
   transform: rotate(var(--plan-rotation));
   transform-origin: 55% 100%;
+}
+
+.swiper-slide-active .timeline-slide__background,
+.swiper-slide-active .year-heading > *,
+.swiper-slide-active .events-track,
+.swiper-slide-active .plan-card {
+  will-change: transform, opacity;
 }
 
 .plan-card img {
@@ -969,12 +1140,14 @@ onUnmounted(() => {
   color: #172c1a;
   font-size: 14px;
   line-height: 20px;
+  cursor: pointer;
   opacity: 1;
   transform: translateX(-50%);
 }
 
 .top-nav__back:focus-visible,
-.year-nav button:focus-visible {
+.year-nav button:focus-visible,
+.result-link:focus-visible {
   outline: 3px solid rgb(255 255 255 / 76%);
   outline-offset: 3px;
 }
@@ -985,11 +1158,10 @@ onUnmounted(() => {
     overscroll-behavior: contain;
   }
 
-  .events-track {
-    will-change: auto;
-  }
-
-  .plan-card {
+  .swiper-slide-active .timeline-slide__background,
+  .swiper-slide-active .year-heading > *,
+  .swiper-slide-active .events-track,
+  .swiper-slide-active .plan-card {
     will-change: auto;
   }
 }

@@ -21,6 +21,12 @@ const routes = [
     meta: { title: '未来科学城 MBTI - 时光之旅' }
   },
   {
+    path: '/result',
+    name: 'Result',
+    component: () => import('../views/ResultView.vue'),
+    meta: { title: '未来科学城 MBTI - 奠基者' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'CatchAll',
     component: HomeView

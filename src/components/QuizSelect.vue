@@ -248,7 +248,7 @@ onUnmounted(() => {
     inset 0 1px 0 #fff,
     inset 0 -1px 0 rgb(0 104 160 / 10%);
   color: rgb(0 67 90 / 52%);
-  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -350,7 +350,7 @@ onUnmounted(() => {
   padding: 0 12px;
   border-radius: 11px;
   color: #245c70;
-  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
