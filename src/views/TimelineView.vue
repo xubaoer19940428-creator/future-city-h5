@@ -3,7 +3,7 @@
     <Swiper
       class="timeline-swiper"
       :initial-slide="initialIndex"
-      :speed="720"
+      :speed="1050"
       :allow-touch-move="true"
       @swiper="onSwiperReady"
       @slide-change="onSlideChange"
@@ -44,20 +44,24 @@
           </section>
 
           <div
-            class="plan-card"
-            :class="{ 'plan-card--placeholder': !item.plan }"
+            class="plan-card-stack"
             :style="{ '--plan-rotation': `${item.planRotation ?? 7}deg` }"
           >
-            <img
-              v-if="item.plan"
-              :class="{ 'plan-card__image--cover': item.planFit === 'cover' }"
-              :src="item.plan"
-              :alt="`${item.year}年规划图`"
-            />
-            <div v-else class="plan-placeholder" aria-label="规划图资料待补充">
-              <span>{{ item.year }}</span>
-              <strong>PLANNING ARCHIVE</strong>
-              <small>资料待补充</small>
+            <div
+              class="plan-card"
+              :class="{ 'plan-card--placeholder': !item.plan }"
+            >
+              <img
+                v-if="item.plan"
+                :class="{ 'plan-card__image--cover': item.planFit === 'cover' }"
+                :src="item.plan"
+                :alt="`${item.year}年规划图`"
+              />
+              <div v-else class="plan-placeholder" aria-label="规划图资料待补充">
+                <span>{{ item.year }}</span>
+                <strong>PLANNING ARCHIVE</strong>
+                <small>资料待补充</small>
+              </div>
             </div>
           </div>
         </article>
@@ -731,7 +735,7 @@ const animateActiveEvents = async () => {
   const parts = activeSlide?.querySelectorAll('[data-event-part]');
   const background = activeSlide?.querySelector('.timeline-slide__background');
   const headingParts = activeSlide?.querySelectorAll('.year-heading > *');
-  const planCard = activeSlide?.querySelector('.plan-card');
+  const planCard = activeSlide?.querySelector('.plan-card-stack');
   if (!panel || !track || !parts?.length || !background || !headingParts?.length || !planCard) return;
 
   eventTimeline?.kill();
@@ -756,25 +760,25 @@ const animateActiveEvents = async () => {
       .from(background, {
         autoAlpha: 0.72,
         scale: 1.08,
-        duration: 1.55,
+        duration: 2.1,
         clearProps: 'transform,opacity,visibility'
       }, 0)
       .from(headingParts, {
         autoAlpha: 0,
         x: -26,
-        duration: 0.78,
-        stagger: 0.12,
+        duration: 1.05,
+        stagger: 0.16,
         clearProps: 'transform,opacity,visibility'
-      }, 0.12)
+      }, 0.18)
       .from(planCard, {
         autoAlpha: 0,
         x: 64,
         y: 36,
         rotation: '-=8',
-        duration: 1.12,
+        duration: 1.5,
         ease: 'back.out(1.25)',
         clearProps: 'transform,opacity,visibility'
-      }, 0.45)
+      }, 0.65)
       .fromTo(
         parts,
         { autoAlpha: 0, y: 10, filter: 'blur(4px)' },
@@ -786,7 +790,7 @@ const animateActiveEvents = async () => {
           stagger: revealStagger,
           clearProps: 'transform,filter,visibility,opacity'
         },
-        0.58
+        0.85
       );
 
     if (overflow > 0) {
@@ -797,7 +801,7 @@ const animateActiveEvents = async () => {
           duration: Math.max(revealSpan, overflow / 24),
           ease: 'none'
         },
-        1.5
+        1.9
       );
     }
   });
@@ -881,7 +885,10 @@ onUnmounted(() => {
 .timeline-slide__background,
 .timeline-slide__wash {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: 100%;
 }
@@ -897,7 +904,7 @@ onUnmounted(() => {
 
 .year-heading,
 .events-panel,
-.plan-card {
+.plan-card-stack {
   position: absolute;
   z-index: 2;
 }
@@ -988,25 +995,45 @@ onUnmounted(() => {
   margin-top: 4px;
 }
 
-.plan-card {
-  top: 500px;
+.plan-card-stack {
+  bottom: 50px;
   left: calc(50% - 78px);
   width: 266px;
   height: 285px;
+  isolation: isolate;
+  transform: rotate(var(--plan-rotation));
+  transform-origin: 55% 100%;
+}
+
+.plan-card-stack::before {
+  position: absolute;
+  inset: -7px 0 3px;
+  z-index: -1;
+  border-radius: 16.26px;
+  opacity: 0.5;
+  background: #feffff;
+  box-shadow: 0 0 8.13px 0 #83d2ef;
+  content: '';
+  transform: rotate(calc(8deg - var(--plan-rotation)));
+  transform-origin: 50% 100%;
+}
+
+.plan-card {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
   padding: 14px 14px 44px;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 82%);
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 16px 28px rgb(0 66 99 / 24%);
-  transform: rotate(var(--plan-rotation));
-  transform-origin: 55% 100%;
 }
 
 .swiper-slide-active .timeline-slide__background,
 .swiper-slide-active .year-heading > *,
 .swiper-slide-active .events-track,
-.swiper-slide-active .plan-card {
+.swiper-slide-active .plan-card-stack {
   will-change: transform, opacity;
 }
 
@@ -1161,7 +1188,7 @@ onUnmounted(() => {
   .swiper-slide-active .timeline-slide__background,
   .swiper-slide-active .year-heading > *,
   .swiper-slide-active .events-track,
-  .swiper-slide-active .plan-card {
+  .swiper-slide-active .plan-card-stack {
     will-change: auto;
   }
 }

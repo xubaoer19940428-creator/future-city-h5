@@ -11,14 +11,16 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - This is a Vue 3 + Vite mobile H5 for the Future Science City MBTI experience.
 - Main flow: Home (`/`) -> Quiz/Profile (`/quiz`) -> Year timeline (`/timeline`) -> Result (`/result`).
 - The Figma reference canvas is 390 × 844, but the implementation must fill the actual phone width. Do not restore a 390px `max-width`.
+- CSS pixel values are converted with `postcss-pxtorem` using a 16px root value. `src/main.js` recalculates the root font size as `viewportWidth / 390 * 16` on resize/orientation changes, while `html { font-size: 4.102564vw; }` remains the no-JS fallback; keep new layout dimensions compatible with this 390px design baseline.
 - Validate responsive layout at 360px, 390px, and 430px widths.
 
 ## Motion direction
 
 - The desired feel is a deliberate PPT/presentation sequence, not a fast app transition.
-- Keep page entry around 760ms. Current Home, Quiz, and Result GSAP presentation timelines intentionally use `timeScale(0.72)`; Timeline Swiper uses 720ms.
+- Keep page entry around 1100ms. Current Home, Quiz, and Result GSAP presentation timelines intentionally use `timeScale(0.5)`; Timeline Swiper uses 1050ms.
 - Keep buttons, selects, press states, and other direct interaction feedback fast and responsive.
 - Do not slow the Timeline event-text reveal or long overflow-scroll duration just to make scene entrances slower.
+- Timeline backgrounds begin below the 44px status-bar area. The planning artwork uses a bottom-positioned `.plan-card-stack` with a separate angled backing layer; do not revert it to top positioning or a single card.
 - Prefer transform and opacity, scope GSAP selectors with `gsap.context`, clean up on unmount, and preserve `prefers-reduced-motion` behavior.
 
 ## Font and assets

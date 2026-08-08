@@ -103,15 +103,15 @@ onMounted(() => {
 
 .deck-enter-active {
   transition:
-    clip-path 760ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 600ms ease-out,
-    transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+    clip-path 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 850ms ease-out,
+    transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .deck-leave-active {
   transition:
-    opacity 260ms ease-out,
-    transform 320ms cubic-bezier(0.4, 0, 1, 1);
+    opacity 320ms ease-out,
+    transform 420ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .deck-enter-from {

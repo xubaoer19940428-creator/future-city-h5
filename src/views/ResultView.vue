@@ -149,7 +149,7 @@ onMounted(() => {
 
     entranceTimeline = gsap
       .timeline({ defaults: { ease: 'power3.out' } })
-      .timeScale(0.72);
+      .timeScale(0.5);
     entranceTimeline
       .from('.result-scene__cloud', {
         autoAlpha: 0,

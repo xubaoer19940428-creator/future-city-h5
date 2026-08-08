@@ -63,7 +63,7 @@ onMounted(() => {
   animationContext = gsap.context(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const intro = gsap.timeline({ defaults: { ease: 'power3.out' } }).timeScale(0.72);
+    const intro = gsap.timeline({ defaults: { ease: 'power3.out' } }).timeScale(0.5);
 
     intro
       .from('.background__layer--back', {

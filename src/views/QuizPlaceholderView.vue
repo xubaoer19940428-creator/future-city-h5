@@ -166,7 +166,7 @@ const animateStep = (step, delay = 0) => {
   animationContext.add(() => {
     sceneTimeline = gsap
       .timeline({ delay, defaults: { ease: 'power3.out' } })
-      .timeScale(0.72);
+      .timeScale(0.5);
     sceneTimeline.from(slide.querySelector('.scene-image'), {
       scale: 1.06,
       duration: 1.05,

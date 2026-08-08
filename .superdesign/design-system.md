@@ -10,13 +10,15 @@ Mobile-first campaign H5 for the Future Science City MBTI experience. The primar
 - Primary sky: `#4cb5f7`; supporting sky: `#40acf5` / `#42aff6`.
 - Deep teal copy: `#00435a`; electric accent: `#0ca1ff`; timeline date accent: `#fff500`.
 - Primary CTA gradient: `#279bff` to `#40b6ff`; inset highlight: `#bce1ff`.
-- Body: Noto Sans SC / PingFang SC fallbacks.
+- Body: Resource Han Rounded CN with Noto Sans SC / PingFang SC fallbacks.
 - Display: PangMenZhengDao-Cu / Resource Han Rounded CN with existing project fallbacks.
 - Reuse the existing Figma-derived images, masks, icons, cards, and responsive positions. Do not introduce new colors, fonts, component shapes, or raster assets.
 
 ## Layout
 
 - Full-viewport, overflow-hidden mobile scenes.
+- Convert authored pixel dimensions through a 16px px-to-rem root; runtime code recalculates root rem as `viewportWidth / 390 * 16` on viewport changes, with `4.102564vw` as the CSS fallback, so the 390px reference scales proportionally across phones.
+- Timeline scene imagery starts below the 44px status-bar area. Its planning artwork is a bottom-anchored two-layer angled card stack.
 - Top navigation is 52px high and remains visually quiet above the presentation content.
 - Primary controls have 50px height, pill radii, and at least 35px horizontal page margin where applicable.
 - Content may use intentional overlap and off-canvas entrances, but final positions must remain identical to the existing Figma implementation.
