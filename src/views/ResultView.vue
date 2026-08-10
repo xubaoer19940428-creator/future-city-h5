@@ -27,7 +27,12 @@
     <div class="result-content">
       <div class="result-stage">
         <div class="result-stage__canvas">
-          <article ref="posterCard" class="result-card" data-poster-card>
+          <article
+            ref="posterCard"
+            class="result-card"
+            :class="{ 'result-card--hidden': Boolean(posterSnapshot) }"
+            data-poster-card
+          >
             <img class="result-card__accent" src="/assets/result-card-accent.svg" alt="" />
             <img class="result-card__corner" src="/assets/result-card-corner.svg" alt="" />
 
@@ -224,8 +229,13 @@ const generatePoster = async () => {
     await waitForPosterAssets();
 
     const cardEl = posterCard.value;
+    const rect = cardEl.getBoundingClientRect();
+    const currentFontSize = window.getComputedStyle(document.documentElement).fontSize;
+
     const dataUrl = await domToPng(cardEl, {
       scale: 2,
+      width: rect.width,
+      height: rect.height,
       style: {
         transform: 'none',
         transformStyle: 'flat',
@@ -234,6 +244,11 @@ const generatePoster = async () => {
         filter: 'none',
         backdropFilter: 'none',
         webkitBackdropFilter: 'none'
+      },
+      onClone: (clonedNode) => {
+        if (clonedNode?.ownerDocument?.documentElement) {
+          clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize;
+        }
       }
     });
 
@@ -580,6 +595,11 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
+.result-card--hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .result-card-snapshot {
   position: absolute;
   top: 0;
@@ -589,6 +609,7 @@ onUnmounted(() => {
   width: 350px;
   height: 553px;
   border-radius: 30px 80px 30px 30px;
+  box-shadow: 0 4px 4px rgb(0 0 0 / 5%);
   object-fit: cover;
   -webkit-touch-callout: default;
   user-select: auto;

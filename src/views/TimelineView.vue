@@ -536,10 +536,10 @@ const animateActiveEvents = async () => {
 	panel.scrollTop = 0
 
 	const overflow = Math.max(track.scrollHeight - panel.clientHeight, 0)
-	const revealDuration = 0.8
-	const revealStagger = 0.45
-	const revealStart = 0.95
-	const scrollPause = 0.6
+	const revealDuration = 0.45
+	const revealStagger = 0.15
+	const revealStart = 0.4
+	const scrollPause = 0.3
 	const scrollPixelsPerSecond = 14
 	const revealSpan = revealDuration + (parts.length - 1) * revealStagger
 
@@ -562,7 +562,7 @@ const animateActiveEvents = async () => {
 					autoAlpha: 0.72,
 					xPercent: -2,
 					scale: 1.1,
-					duration: 2.4,
+					duration: 1.2,
 					clearProps: 'transform,opacity,visibility',
 				},
 				'scene',
@@ -571,19 +571,19 @@ const animateActiveEvents = async () => {
 				wash,
 				{
 					autoAlpha: 0,
-					duration: 1.25,
+					duration: 0.6,
 					clearProps: 'opacity,visibility',
 				},
-				'scene+=0.08',
+				'scene+=0.05',
 			)
-			.addLabel('heading', 0.2)
+			.addLabel('heading', 0.1)
 			.from(
 				headingHighlight,
 				{
 					autoAlpha: 0,
 					scaleX: 0,
 					transformOrigin: 'left center',
-					duration: 0.9,
+					duration: 0.45,
 					clearProps: 'transform,opacity,visibility',
 				},
 				'heading',
@@ -592,38 +592,38 @@ const animateActiveEvents = async () => {
 				headingTitle,
 				{
 					autoAlpha: 0,
-					x: -34,
-					y: 8,
+					x: -24,
+					y: 6,
 					rotationY: -4,
 					transformPerspective: 600,
-					duration: 1.15,
+					duration: 0.55,
 					clearProps: 'transform,opacity,visibility',
 				},
-				'heading+=0.08',
+				'heading+=0.04',
 			)
 			.from(
 				headingSubtitle,
 				{
 					autoAlpha: 0,
-					x: -18,
-					y: 10,
-					duration: 0.9,
+					x: -14,
+					y: 8,
+					duration: 0.45,
 					clearProps: 'transform,opacity,visibility',
 				},
-				'heading+=0.34',
+				'heading+=0.18',
 			)
-			.addLabel('artwork', 0.62)
+			.addLabel('artwork', 0.28)
 
 		if (planCard) {
 			eventTimeline.from(
 				planCard,
 				{
 					autoAlpha: 0,
-					x: 78,
-					y: 44,
-					scale: 0.88,
-					rotation: '-=10',
-					duration: 1.65,
+					x: 50,
+					y: 30,
+					scale: 0.9,
+					rotation: '-=8',
+					duration: 0.85,
 					ease: 'back.out(1.15)',
 					clearProps: 'transform,opacity,visibility',
 				},
@@ -865,7 +865,7 @@ onUnmounted(() => {
 }
 
 .event-copy--height-34 {
-	height: 34px;
+	min-height: 34px;
 }
 
 .event-copy + .event-copy {
