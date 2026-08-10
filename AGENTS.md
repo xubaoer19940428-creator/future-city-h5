@@ -19,7 +19,7 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - The desired feel is a deliberate PPT/presentation sequence, not a fast app transition.
 - Keep page entry around 1100ms. Current Home, Quiz, and Result GSAP presentation timelines intentionally use `timeScale(0.5)`; Timeline Swiper uses 1050ms.
 - Keep buttons, selects, press states, and other direct interaction feedback fast and responsive.
-- Do not slow the Timeline event-text reveal or long overflow-scroll duration just to make scene entrances slower.
+- Timeline event text deliberately reveals at `0.8s` with a `0.45s` stagger. Overflow scrolling starts only after the reveal plus a `0.6s` pause and moves at about `14px/s`; keep this track motion slow unless the user asks otherwise.
 - Timeline backgrounds begin below the 44px status-bar area. The planning artwork uses a bottom-positioned `.plan-card-stack` with a separate angled backing layer; do not revert it to top positioning or a single card.
 - Prefer transform and opacity, scope GSAP selectors with `gsap.context`, clean up on unmount, and preserve `prefers-reduced-motion` behavior.
 

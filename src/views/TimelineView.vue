@@ -742,8 +742,11 @@ const animateActiveEvents = async () => {
   panel.scrollTop = 0;
 
   const overflow = Math.max(track.scrollHeight - panel.clientHeight, 0);
-  const revealDuration = 0.55;
-  const revealStagger = 0.3;
+  const revealDuration = 0.8;
+  const revealStagger = 0.45;
+  const revealStart = 0.95;
+  const scrollPause = 0.6;
+  const scrollPixelsPerSecond = 14;
   const revealSpan = revealDuration + (parts.length - 1) * revealStagger;
 
   animationContext?.add(() => {
@@ -790,7 +793,7 @@ const animateActiveEvents = async () => {
           stagger: revealStagger,
           clearProps: 'transform,filter,visibility,opacity'
         },
-        0.85
+        revealStart
       );
 
     if (overflow > 0) {
@@ -798,10 +801,10 @@ const animateActiveEvents = async () => {
         track,
         {
           y: -overflow,
-          duration: Math.max(revealSpan, overflow / 24),
+          duration: Math.max(revealSpan, overflow / scrollPixelsPerSecond),
           ease: 'none'
         },
-        1.9
+        revealStart + revealSpan + scrollPause
       );
     }
   });
