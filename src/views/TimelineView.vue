@@ -976,8 +976,8 @@ onUnmounted(() => {
 .events-panel {
   z-index: 3;
   width: 100%;
-  height: 250px;
-  margin-top: 39px;
+  height: 260px;
+  margin-top: 20px;
   overflow: hidden;
   font-family: var(--rounded-display);
   font-weight: 800;

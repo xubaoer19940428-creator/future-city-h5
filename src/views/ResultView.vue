@@ -1,5 +1,12 @@
 <template>
   <main ref="resultRoot" class="result-view" aria-labelledby="result-title">
+    <img
+      class="wechat-share-thumbnail"
+      src="/assets/title-graphic.webp"
+      alt=""
+      aria-hidden="true"
+    />
+
     <div class="result-scene" aria-hidden="true">
       <img class="result-scene__cloud" src="/assets/result-cloud.webp" alt="" />
       <div class="result-scene__city-window">
@@ -20,7 +27,7 @@
     <div class="result-content">
       <div class="result-stage">
         <div class="result-stage__canvas">
-          <article ref="posterCard" class="result-card">
+          <article ref="posterCard" class="result-card" data-poster-card>
             <img class="result-card__accent" src="/assets/result-card-accent.svg" alt="" />
             <img class="result-card__corner" src="/assets/result-card-corner.svg" alt="" />
 
@@ -50,6 +57,14 @@
           </article>
 
           <img
+            v-if="posterSnapshot"
+            class="result-card-snapshot"
+            :src="posterSnapshot"
+            :alt="`${result.title}未来科学城基因海报，长按图片保存`"
+            draggable="false"
+          />
+
+          <img
             class="result-mascot result-mascot--speaker"
             src="/assets/result-mascot-speaker.webp"
             alt=""
@@ -60,8 +75,19 @@
 
       <div class="result-controls">
         <div class="result-actions">
-          <button class="result-button result-button--light" type="button" @click="generatePoster">
-            生成我的基因海报
+          <button
+            class="result-button result-button--light"
+            type="button"
+            :disabled="isPosterRendering"
+            @click="generatePoster"
+          >
+            {{
+              isPosterRendering
+                ? '正在生成基因海报…'
+                : posterSnapshot
+                  ? '长按上方海报保存'
+                  : '生成我的基因海报'
+            }}
           </button>
           <button class="result-button result-button--primary" type="button" @click="sharePoster">
             分享给朋友
@@ -83,12 +109,25 @@
     </div>
 
     <p class="sr-only" role="status" aria-live="polite">{{ actionStatus }}</p>
+
+    <Transition name="share-guide">
+      <div v-if="shareGuideVisible" class="share-guide" role="dialog" aria-modal="true">
+        <span class="share-guide__arrow" aria-hidden="true">↗</span>
+        <div class="share-guide__card">
+          <span class="share-guide__eyebrow">SHARE MY FUTURE</span>
+          <strong>点击右上角“···”</strong>
+          <p>发送给朋友，或分享到朋友圈</p>
+          <button type="button" @click="shareGuideVisible = false">我知道了</button>
+        </div>
+      </div>
+    </Transition>
   </main>
 </template>
 
 <script setup>
 import { gsap } from 'gsap';
-import { onMounted, onUnmounted, ref } from 'vue';
+import html2canvas from 'html2canvas';
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   createRandomResultIndex,
@@ -96,13 +135,16 @@ import {
   normalizeResultIdentity,
   normalizeResultYear
 } from '../data/resultProfiles';
+import { configureWeChatShare, isWeChatBrowser } from '../utils/wechat';
 
 const route = useRoute();
 const router = useRouter();
 const resultRoot = ref(null);
 const posterCard = ref(null);
+const posterSnapshot = ref('');
+const isPosterRendering = ref(false);
+const shareGuideVisible = ref(false);
 const actionStatus = ref('');
-let posterTimer;
 let animationContext;
 let entranceTimeline;
 
@@ -141,20 +183,77 @@ const goBack = () => {
   router.replace({ name: 'Timeline', query: timelineQuery() });
 };
 
-const generatePoster = () => {
-  if (!posterCard.value) return;
+const waitForPosterAssets = async () => {
+  const images = Array.from(posterCard.value?.querySelectorAll('img') ?? []);
+  const imagePromises = images.map((image) => {
+    if (image.complete) return Promise.resolve();
 
-  window.clearTimeout(posterTimer);
-  posterCard.value.classList.remove('result-card--generated');
-  void posterCard.value.offsetWidth;
-  posterCard.value.classList.add('result-card--generated');
-  actionStatus.value = '基因海报已生成，可以分享了';
-  posterTimer = window.setTimeout(() => {
-    posterCard.value?.classList.remove('result-card--generated');
-  }, 900);
+    return new Promise((resolve) => {
+      image.addEventListener('load', resolve, { once: true });
+      image.addEventListener('error', resolve, { once: true });
+    });
+  });
+
+  await Promise.all([
+    document.fonts?.ready ?? Promise.resolve(),
+    ...imagePromises
+  ]);
+};
+
+const generatePoster = async () => {
+  if (posterSnapshot.value) {
+    actionStatus.value = '请长按上方海报图片保存';
+    return;
+  }
+  if (!posterCard.value || isPosterRendering.value) return;
+
+  isPosterRendering.value = true;
+  actionStatus.value = '正在生成基因海报';
+
+  try {
+    await nextTick();
+    await waitForPosterAssets();
+
+    const canvas = await html2canvas(posterCard.value, {
+      backgroundColor: null,
+      imageTimeout: 10000,
+      logging: false,
+      scale: 2,
+      useCORS: true,
+      onclone: (clonedDocument) => {
+        const clonedCard = clonedDocument.querySelector('[data-poster-card]');
+        const clonedStage = clonedCard?.closest('.result-stage__canvas');
+
+        if (clonedStage) {
+          clonedStage.style.left = '0';
+          clonedStage.style.transform = 'none';
+        }
+        if (clonedCard) {
+          clonedCard.style.animation = 'none';
+          clonedCard.style.filter = 'none';
+          clonedCard.style.transform = 'none';
+          clonedCard.style.transition = 'none';
+        }
+      }
+    });
+
+    if (!resultRoot.value) return;
+    posterSnapshot.value = canvas.toDataURL('image/png');
+    actionStatus.value = '基因海报已生成，请长按图片保存';
+  } catch {
+    actionStatus.value = '海报生成失败，请点击按钮重试';
+  } finally {
+    isPosterRendering.value = false;
+  }
 };
 
 const sharePoster = async () => {
+  if (isWeChatBrowser()) {
+    shareGuideVisible.value = true;
+    actionStatus.value = '请点击微信右上角菜单分享给朋友';
+    return;
+  }
+
   const shareData = {
     title: `我的未来科学城基因海报｜${result.title}`,
     text: `我的未来科学城基因是：${result.title}`,
@@ -175,6 +274,21 @@ const sharePoster = async () => {
   }
 };
 
+const prepareWeChatShare = async () => {
+  if (!isWeChatBrowser()) return;
+
+  try {
+    await configureWeChatShare({
+      title: `我的未来科学城基因海报｜${result.title}`,
+      description: `我的未来科学城基因是：${result.title}`,
+      link: window.location.href.split('#')[0],
+      imageUrl: new URL('/share.jpg', window.location.origin).href
+    });
+  } catch {
+    // The visible guide still lets users use WeChat's default page sharing.
+  }
+};
+
 const retryQuiz = () => {
   router.replace({ name: 'Quiz', query: { step: 'profile' } });
 };
@@ -182,16 +296,25 @@ const retryQuiz = () => {
 onMounted(() => {
   const resolvedResultRoute = router.resolve({ name: 'Result', query: stableResultQuery });
   if (resolvedResultRoute.fullPath !== route.fullPath) {
-    void router.replace({ name: 'Result', query: stableResultQuery });
-    return;
+    void router
+      .replace({ name: 'Result', query: stableResultQuery })
+      .then(prepareWeChatShare);
+  } else {
+    void prepareWeChatShare();
   }
   document.title = `未来科学城 MBTI - ${result.title}`;
 
   animationContext = gsap.context(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      void generatePoster();
+      return;
+    }
 
     entranceTimeline = gsap
-      .timeline({ defaults: { ease: 'power3.out' } })
+      .timeline({
+        defaults: { ease: 'power3.out' },
+        onComplete: () => void generatePoster()
+      })
       .timeScale(0.5);
     entranceTimeline
       .from('.result-scene__cloud', {
@@ -289,7 +412,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.clearTimeout(posterTimer);
   entranceTimeline?.kill();
   animationContext?.revert();
 });
@@ -305,6 +427,15 @@ onUnmounted(() => {
   overflow: hidden;
   background: #40acf5;
   color: #333;
+}
+
+.wechat-share-thumbnail {
+  position: fixed;
+  left: -9999px;
+  width: 300px;
+  height: 300px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .result-content {
@@ -454,8 +585,18 @@ onUnmounted(() => {
   will-change: transform, opacity;
 }
 
-.result-card--generated {
-  animation: poster-confirm 800ms cubic-bezier(0.22, 1, 0.36, 1);
+.result-card-snapshot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  display: block;
+  width: 350px;
+  height: 553px;
+  border-radius: 30px 80px 30px 30px;
+  object-fit: cover;
+  -webkit-touch-callout: default;
+  user-select: auto;
 }
 
 .result-card__accent,
@@ -722,6 +863,11 @@ onUnmounted(() => {
   transform: scale(0.98);
 }
 
+.result-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .retry-button:active {
   opacity: 0.78;
   transform: scale(0.97);
@@ -738,21 +884,84 @@ onUnmounted(() => {
   border: 0;
 }
 
-@keyframes poster-confirm {
-  0% {
-    filter: brightness(1);
-    transform: scale(1);
-  }
+.share-guide {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 110px 24px 0;
+  background: rgb(0 49 105 / 78%);
+  backdrop-filter: blur(6px);
+}
 
-  45% {
-    filter: brightness(1.04);
-    transform: scale(1.012);
-  }
+.share-guide__arrow {
+  position: absolute;
+  top: 13px;
+  right: 17px;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 66px;
+  line-height: 1;
+  text-shadow: 0 0 18px rgb(118 224 255 / 90%);
+  transform: rotate(-7deg);
+}
 
-  100% {
-    filter: brightness(1);
-    transform: scale(1);
-  }
+.share-guide__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(320px, 100%);
+  padding: 26px 22px 22px;
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 28px;
+  background: linear-gradient(155deg, rgb(255 255 255 / 96%), rgb(218 248 255 / 94%));
+  box-shadow: 0 18px 48px rgb(0 50 109 / 32%);
+  color: #057be8;
+  text-align: center;
+}
+
+.share-guide__eyebrow {
+  margin-bottom: 8px;
+  color: #42b9f7;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.share-guide__card strong {
+  font-size: 23px;
+  line-height: 1.3;
+}
+
+.share-guide__card p {
+  margin-top: 7px;
+  color: #4387b9;
+  font-size: 15px;
+}
+
+.share-guide__card button {
+  width: 150px;
+  height: 42px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #279bff, #40b6ff);
+  box-shadow: inset 0 0 6px #bce1ff;
+  color: #fff;
+  font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.share-guide-enter-active,
+.share-guide-leave-active {
+  transition: opacity 220ms ease-out;
+}
+
+.share-guide-enter-from,
+.share-guide-leave-to {
+  opacity: 0;
 }
 
 @media (max-height: 800px) {
@@ -785,9 +994,4 @@ onUnmounted(() => {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .result-card--generated {
-    animation: none;
-  }
-}
 </style>

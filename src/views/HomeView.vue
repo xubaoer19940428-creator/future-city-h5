@@ -35,16 +35,18 @@
       <p>你的基因里藏着怎样的未来？</p>
     </div>
 
-    <RouterLink
-      class="start-button"
-      to="/quiz"
-      replace
-      data-node-id="68:2788"
-      aria-label="开始未来科学城 MBTI 测试"
-      @click="playBackgroundAudio"
-    >
-      <span>点击测试</span>
-    </RouterLink>
+    <div class="start-button-frame">
+      <RouterLink
+        class="start-button"
+        to="/quiz"
+        replace
+        data-node-id="68:2788"
+        aria-label="开始未来科学城 MBTI 测试"
+        @click="playBackgroundAudio"
+      >
+        <span>点击测试</span>
+      </RouterLink>
+    </div>
   </main>
 </template>
 
@@ -108,7 +110,7 @@ onMounted(() => {
         stagger: 0.1,
         clearProps: 'transform,opacity,visibility'
       }, 0.84)
-      .from('.start-button', {
+      .from('.start-button-frame', {
         autoAlpha: 0,
         duration: 0.48,
         clearProps: 'opacity,visibility'
@@ -296,32 +298,40 @@ onUnmounted(() => {
   animation-delay: 180ms;
 }
 
-.start-button {
+.start-button-frame {
   position: absolute;
   top: 83.54%;
   left: 50%;
   z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 76.92%;
   height: 50px;
-  padding: 0;
-  border: 1px solid #fff;
+  padding: 1px;
   border-radius: 30px;
-  background: linear-gradient(180deg, #279BFF 0%, #40B6FF 100%);
-  box-shadow: inset 0 0 9px #d8efff, 0 9px 22px rgb(0 110 200 / 26%);
-  color: #fff;
-  cursor: pointer;
-  /* transition: filter 150ms ease, transform 150ms ease; */
+  background: linear-gradient(180deg, #fff 0%, rgb(255 255 255 / 0%) 100%);
   transform: translateX(-50%);
   isolation: isolate;
   will-change: transform;
   animation: button-breathe 2.6s ease-in-out infinite;
+}
+
+.start-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 29px;
+  background: linear-gradient(180deg, #279bff 0%, #40b6ff 100%);
+  box-shadow: 0 0 6px 0 #bce1ff inset;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 150ms ease, transform 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.start-button::before {
+/* .start-button-frame::before {
   position: absolute;
   inset: -7px;
   z-index: -1;
@@ -331,7 +341,7 @@ onUnmounted(() => {
   opacity: 0;
   pointer-events: none;
   animation: button-halo 2.6s ease-out infinite;
-}
+} */
 
 .start-button span {
   font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
@@ -341,9 +351,8 @@ onUnmounted(() => {
 }
 
 .start-button:active {
-  animation: none;
   filter: brightness(0.96);
-  transform: translateX(-50%) scale(0.98);
+  transform: scale(0.98);
 }
 
 .start-button:focus-visible {
@@ -429,8 +438,8 @@ onUnmounted(() => {
   .tagline,
   .tagline p,
   .star img,
-  .start-button,
-  .start-button::before {
+  .start-button-frame,
+  .start-button-frame::before {
     animation: none;
   }
 

@@ -6,6 +6,16 @@
     @touchstart.passive="onTouchStart"
     @touchend.passive="onTouchEnd"
   >
+    <nav class="top-nav" aria-label="页面导航">
+      <button class="top-nav__back" type="button" aria-label="返回" @click="goBack">
+        <img src="/assets/nav-back.svg" alt="" />
+      </button>
+      <span class="top-nav__title">我的未来科学城</span>
+      <div class="top-nav__actions">
+        <img src="/assets/nav-share.svg" alt="" aria-hidden="true" />
+      </div>
+    </nav>
+
     <div class="quiz-track" :class="{ 'quiz-track--form': currentStep === 1 }">
       <section
         class="quiz-slide quiz-slide--intro"
@@ -17,22 +27,24 @@
           <img class="scene-image" src="/assets/bg-2.webp" alt="" />
         </div>
 
-        <h1 id="intro-title" class="intro-title">科创新都&nbsp; 未来之城</h1>
-        <div ref="introCopy" class="intro-copy">
-          <p class="intro-copy__year">2009—2026年</p>
-          <p>未来科学城从一纸蓝图生长为</p>
-          <p>170.6平方公里的科创热土。</p>
-          <p>十七年时光</p>
-          <p>每一次变革</p>
-          <p>每一栋建筑</p>
-          <p>每一份突破</p>
-          <p>都与你有关</p>
-        </div>
+        <div class="intro-content">
+          <h1 id="intro-title" class="intro-title">科创新都&nbsp; 未来之城</h1>
+          <div ref="introCopy" class="intro-copy">
+            <p class="intro-copy__year">2009—2026年</p>
+            <p>未来科学城从一纸蓝图生长为</p>
+            <p>170.6平方公里的科创热土。</p>
+            <p>十七年时光</p>
+            <p>每一次变革</p>
+            <p>每一栋建筑</p>
+            <p>每一份突破</p>
+            <p>都与你有关</p>
+          </div>
 
-        <button class="swipe-hint" type="button" @click="currentStep = 1">
-          <span>左滑继续</span>
-          <img src="/assets/swipe-chevron.svg" alt="" />
-        </button>
+          <button class="swipe-hint" type="button" @click="currentStep = 1">
+            <span>左滑继续</span>
+            <img src="/assets/swipe-chevron.svg" alt="" />
+          </button>
+        </div>
       </section>
 
       <section
@@ -89,15 +101,6 @@
       </section>
     </div>
 
-    <nav class="top-nav" aria-label="页面导航">
-      <button class="top-nav__back" type="button" aria-label="返回" @click="goBack">
-        <img src="/assets/nav-back.svg" alt="" />
-      </button>
-      <span class="top-nav__title">我的未来科学城</span>
-      <div class="top-nav__actions">
-        <img src="/assets/nav-share.svg" alt="" aria-hidden="true" />
-      </div>
-    </nav>
   </main>
 </template>
 
@@ -306,6 +309,8 @@ onUnmounted(() => {
 .quiz-flow {
   --rounded-display: 'Resource Han Rounded CN', 'Noto Sans SC', 'PingFang SC', sans-serif;
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -316,8 +321,9 @@ onUnmounted(() => {
 
 .quiz-track {
   display: flex;
+  flex: 1 1 auto;
   width: 200%;
-  height: 100%;
+  min-height: 0;
   transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
@@ -328,7 +334,9 @@ onUnmounted(() => {
 
 .quiz-slide {
   position: relative;
+  display: grid;
   flex: 0 0 50%;
+  grid-template: minmax(0, 1fr) / 100%;
   width: 50%;
   height: 100%;
   overflow: hidden;
@@ -339,16 +347,23 @@ onUnmounted(() => {
   background: #40acf5;
 }
 
+.intro-content {
+  z-index: 2;
+  display: flex;
+  grid-area: 1 / 1;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px max(24px, env(safe-area-inset-bottom));
+}
+
 .scene-window {
-  position: absolute;
-  inset: 0;
+  z-index: 0;
+  grid-area: 1 / 1;
   overflow: hidden;
   pointer-events: none;
 }
 
 .scene-image {
-  position: absolute;
-  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -357,30 +372,23 @@ onUnmounted(() => {
 }
 
 .form-tint {
-  position: absolute;
-  inset: 0;
   z-index: 1;
+  grid-area: 1 / 1;
   background: rgb(53 161 231 / 10%);
   backdrop-filter: blur(0.5px);
   pointer-events: none;
-}
-
-.intro-title,
-.intro-copy,
-.swipe-hint {
-  position: absolute;
-  z-index: 2;
 }
 
 .form-content {
   position: relative;
   z-index: 2;
   display: flex;
+  grid-area: 1 / 1;
   flex-direction: column;
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: clamp(78px, 12dvh, 104px) 20px max(24px, env(safe-area-inset-bottom));
+  padding: 0 20px max(24px, env(safe-area-inset-bottom));
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -391,8 +399,6 @@ onUnmounted(() => {
 }
 
 .intro-title {
-  top: 104px;
-  left: 50%;
   margin: 0;
   font-family: var(--rounded-display);
   font-size: 38px;
@@ -400,24 +406,21 @@ onUnmounted(() => {
   line-height: normal;
   text-align: center;
   white-space: pre;
-  transform: translateX(-50%);
   will-change: transform, opacity;
 }
 
 .intro-copy {
-  top: 171px;
-  left: 50%;
   display: flex;
   flex-direction: column;
   gap: 14px;
   width: min(310px, calc(100% - 40px));
+  margin-top: 12px;
   font-family: var(--rounded-display);
   font-size: 20px;
   font-weight: 800;
   line-height: 1.45;
   text-align: center;
   text-shadow: 0 0 4px #016cb5;
-  transform: translateX(-50%);
 }
 
 .intro-copy p {
@@ -429,12 +432,13 @@ onUnmounted(() => {
 }
 
 .swipe-hint {
-  right: 30px;
-  bottom: 29px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  align-self: flex-end;
   gap: 2px;
+  margin-top: auto;
+  margin-right: 10px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -453,13 +457,11 @@ onUnmounted(() => {
 }
 
 .top-nav {
-  position: absolute;
-  top: 0;
-  left: 0;
   z-index: 20;
-  display: flex;
+  display: grid;
+  flex: 0 0 52px;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   height: 52px;
   padding: 0 12px;
@@ -483,34 +485,32 @@ onUnmounted(() => {
 }
 
 .top-nav__title {
-  position: absolute;
-  top: 17px;
-  left: 50%;
   font-size: 15px;
   font-weight: 400;
   line-height: 18px;
   opacity: 0.6;
-  transform: translateX(-50%);
+  text-align: center;
 }
 
 .top-nav__actions {
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: 12px;
 }
 
 .form-heading {
   position: relative;
+  display: grid;
   flex: 0 0 auto;
-  width: 240px;
-  height: 133px;
+  grid-template: auto auto auto / 100%;
+  width: 100%;
   font-family: var(--rounded-display);
   font-weight: 800;
 }
 
 .form-heading h2,
 .form-heading p {
-  position: absolute;
   z-index: 1;
   margin: 0;
   line-height: 1.45;
@@ -518,30 +518,30 @@ onUnmounted(() => {
 }
 
 .form-heading h2 {
-  top: 0;
-  left: 4px;
+  grid-area: 1 / 1;
+  margin-left: 4px;
   font-size: 38px;
   line-height: 55px;
 }
 
 .form-heading__highlight {
-  position: absolute;
-  top: 36px;
-  left: 32px;
   z-index: 0;
+  grid-area: 1 / 1;
+  margin-top: 36px;
+  margin-left: 32px;
   width: 70px;
   height: 21px;
 }
 
 .form-heading .form-heading__lead {
-  top: 66px;
-  left: 0;
+  grid-area: 2 / 1;
+  margin-top: 11px;
   font-size: 20px;
 }
 
 .form-heading .form-heading__question {
-  top: 104px;
-  left: 0;
+  grid-area: 3 / 1;
+  margin-top: 9px;
   font-size: 20px;
 }
 
@@ -605,22 +605,8 @@ onUnmounted(() => {
   font-weight: 600;
   line-height: normal;
   cursor: pointer;
-  isolation: isolate;
   will-change: transform;
   animation: journey-breathe 2.8s ease-in-out infinite;
-}
-
-.journey-button::before {
-  position: absolute;
-  inset: -6px;
-  z-index: -1;
-  border: 1px solid rgb(255 255 255 / 50%);
-  border-radius: inherit;
-  box-shadow: 0 0 18px rgb(39 155 255 / 38%);
-  content: '';
-  opacity: 0;
-  pointer-events: none;
-  animation: journey-halo 2.8s ease-out infinite;
 }
 
 .journey-button:active {
@@ -633,10 +619,6 @@ onUnmounted(() => {
   cursor: not-allowed;
   filter: saturate(0.45);
   opacity: 0.58;
-  animation: none;
-}
-
-.journey-button:disabled::before {
   animation: none;
 }
 
@@ -665,23 +647,8 @@ onUnmounted(() => {
   }
 
   50% {
+    box-shadow: inset 0 0 9px #d8efff, 0 0 18px rgb(39 155 255 / 38%);
     transform: scale(1.025);
-  }
-}
-
-@keyframes journey-halo {
-  0% {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-
-  42% {
-    opacity: 0.5;
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(1.1);
   }
 }
 
@@ -694,8 +661,7 @@ onUnmounted(() => {
     animation: none;
   }
 
-  .journey-button,
-  .journey-button::before {
+  .journey-button {
     animation: none;
   }
 }

@@ -35,6 +35,18 @@ const routes = [
 ];
 
 const useWeChatMemoryHistory = isWeChatBrowser();
+const sharedResultSearch = new URLSearchParams(window.location.search);
+const sharedResultLocation = sharedResultSearch.get('share') === 'result'
+  ? {
+      name: 'Result',
+      query: {
+        year: sharedResultSearch.get('shareYear') ?? undefined,
+        identity: sharedResultSearch.get('shareIdentity') ?? undefined,
+        trait: sharedResultSearch.get('shareTrait') ?? undefined,
+        description: sharedResultSearch.get('shareDescription') ?? undefined
+      }
+    }
+  : null;
 const initialWeChatLocation = useWeChatMemoryHistory
   ? window.location.hash.slice(1) || '/'
   : '';
@@ -51,7 +63,27 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
+router.afterEach((to) => {
+  if (!useWeChatMemoryHistory) return;
+
+  const shareUrl = new URL(window.location.href);
+  const shareKeys = ['share', 'shareYear', 'shareIdentity', 'shareTrait', 'shareDescription'];
+  shareKeys.forEach((key) => shareUrl.searchParams.delete(key));
+  shareUrl.hash = '';
+
+  if (to.name === 'Result') {
+    shareUrl.searchParams.set('share', 'result');
+    shareUrl.searchParams.set('shareYear', String(to.query.year ?? ''));
+    shareUrl.searchParams.set('shareIdentity', String(to.query.identity ?? ''));
+    shareUrl.searchParams.set('shareTrait', String(to.query.trait ?? ''));
+    shareUrl.searchParams.set('shareDescription', String(to.query.description ?? ''));
+  }
+
+  window.history.replaceState(window.history.state, '', shareUrl);
+});
+
 export const prepareInitialRoute = () => {
+  if (sharedResultLocation) return router.replace(sharedResultLocation);
   if (!useWeChatMemoryHistory) return Promise.resolve();
 
   return router.replace(initialWeChatLocation);
