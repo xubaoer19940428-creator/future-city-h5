@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router';
+import router, { prepareInitialRoute } from './router';
 import { installWeChatToolbarGuard } from './utils/wechat';
 import './styles/main.css';
 
@@ -26,6 +26,12 @@ window.visualViewport?.addEventListener('resize', scheduleRootRemUpdate, { passi
 
 installWeChatToolbarGuard(router);
 
-const app = createApp(App);
-app.use(router);
-app.mount('#app');
+const mountApp = async () => {
+  await prepareInitialRoute();
+
+  const app = createApp(App);
+  app.use(router);
+  app.mount('#app');
+};
+
+void mountApp();

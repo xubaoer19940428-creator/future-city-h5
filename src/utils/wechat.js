@@ -1,4 +1,4 @@
-const isWeChatBrowser = () => /MicroMessenger/i.test(window.navigator.userAgent);
+export const isWeChatBrowser = () => /MicroMessenger/i.test(window.navigator.userAgent);
 const TOOLBAR_HIDE_RETRY_DELAYS = [80, 300, 800, 1500];
 
 const hideWeChatToolbar = () => {

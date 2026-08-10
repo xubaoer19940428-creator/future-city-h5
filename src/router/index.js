@@ -1,5 +1,6 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createMemoryHistory, createRouter, createWebHashHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
+import { isWeChatBrowser } from '../utils/wechat';
 
 const routes = [
   {
@@ -33,8 +34,13 @@ const routes = [
   }
 ];
 
+const useWeChatMemoryHistory = isWeChatBrowser();
+const initialWeChatLocation = useWeChatMemoryHistory
+  ? window.location.hash.slice(1) || '/'
+  : '';
+
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: useWeChatMemoryHistory ? createMemoryHistory() : createWebHashHistory(),
   routes
 });
 
@@ -44,5 +50,11 @@ router.beforeEach((to, from, next) => {
   }
   next();
 });
+
+export const prepareInitialRoute = () => {
+  if (!useWeChatMemoryHistory) return Promise.resolve();
+
+  return router.replace(initialWeChatLocation);
+};
 
 export default router;
