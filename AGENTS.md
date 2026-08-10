@@ -13,6 +13,7 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - The Figma reference canvas is 390 × 844, but the implementation must fill the actual phone width. Do not restore a 390px `max-width`.
 - CSS pixel values are converted with `postcss-pxtorem` using a 16px root value. `src/main.js` recalculates the root font size as `viewportWidth / 390 * 16` on resize/orientation changes, while `html { font-size: 4.102564vw; }` remains the no-JS fallback; keep new layout dimensions compatible with this 390px design baseline.
 - Validate responsive layout at 360px, 390px, and 430px widths.
+- Keep the Quiz profile controls bottom-anchored. The journey button and selects must remain visible on short phone viewports; do not restore fixed `top` coordinates for this control group.
 
 ## Motion direction
 

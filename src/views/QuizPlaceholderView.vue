@@ -557,16 +557,16 @@ onUnmounted(() => {
 }
 
 .select-field--identity {
-  top: 514px;
+  bottom: 270px;
 }
 
 .select-field--year {
-  top: 594px;
+  bottom: 190px;
 }
 
 .journey-button {
   position: absolute;
-  top: 714px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
   left: 35px;
   right: 35px;
   display: flex;
@@ -665,6 +665,27 @@ onUnmounted(() => {
   100% {
     opacity: 0;
     transform: scale(1.1);
+  }
+}
+
+@media (max-height: 760px) {
+  .form-copy {
+    top: 245px;
+    gap: 4px;
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .select-field--identity {
+    bottom: 240px;
+  }
+
+  .select-field--year {
+    bottom: 160px;
+  }
+
+  .journey-button {
+    bottom: calc(30px + env(safe-area-inset-bottom));
   }
 }
 
