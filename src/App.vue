@@ -2,7 +2,7 @@
   <div class="w-full h-full min-h-dvh flex justify-center items-center bg-[#4cb5f7]">
     <div class="app-shell w-full h-full relative overflow-hidden bg-[#4cb5f7] flex flex-col">
       <router-view v-slot="{ Component, route }">
-        <Transition name="deck" mode="out-in" appear>
+        <Transition name="deck" appear>
           <div :key="route.fullPath" class="route-stage">
             <component :is="Component" />
           </div>
@@ -98,31 +98,34 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  backface-visibility: hidden;
   transform-origin: center center;
+  will-change: transform, opacity;
 }
 
 .deck-enter-active {
+  z-index: 2;
   transition:
-    clip-path 1100ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 850ms ease-out,
+    opacity 760ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .deck-leave-active {
+  z-index: 1;
+  pointer-events: none;
   transition:
-    opacity 320ms ease-out,
-    transform 420ms cubic-bezier(0.4, 0, 1, 1);
+    opacity 420ms cubic-bezier(0.4, 0, 1, 1),
+    transform 560ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .deck-enter-from {
-  clip-path: inset(0 0 0 9%);
   opacity: 0;
-  transform: translate3d(7%, 0, -36px) rotateY(-2deg) scale(0.985);
+  transform: translate3d(5.5%, 0, 0) rotateY(-1.2deg) scale(1.018);
 }
 
 .deck-leave-to {
   opacity: 0;
-  transform: translate3d(-4%, 0, -44px) rotateY(1.5deg) scale(0.985);
+  transform: translate3d(-2.5%, 0, 0) rotateY(0.7deg) scale(0.992);
 }
 
 .global-audio-control {
@@ -162,7 +165,6 @@ onMounted(() => {
 
   .deck-enter-from,
   .deck-leave-to {
-    clip-path: none;
     opacity: 0;
     transform: none;
   }

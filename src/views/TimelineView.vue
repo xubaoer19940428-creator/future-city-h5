@@ -13,57 +13,45 @@
           <img class="timeline-slide__background" :src="item.background" alt="" />
           <div class="timeline-slide__wash" aria-hidden="true"></div>
 
-          <header class="year-heading">
-            <img class="year-heading__highlight" src="/assets/title-highlight.svg" alt="" />
-            <h1>{{ item.year }} · {{ item.title }}</h1>
-            <p>{{ item.subtitle }}</p>
-          </header>
+          <div class="timeline-slide__content">
+            <header class="year-heading">
+              <img class="year-heading__highlight" src="/assets/title-highlight.svg" alt="" />
+              <h1>{{ item.year }} · {{ item.title }}</h1>
+              <p>{{ item.subtitle }}</p>
+            </header>
 
-          <section
-            class="events-panel"
-            tabindex="0"
-            :aria-label="`${item.year}年重要事件`"
-          >
-            <div class="events-track">
-              <div
-                v-for="(event, eventIndex) in item.events"
-                :key="`${event.month}-${eventIndex}`"
-                class="event-block"
-              >
-                <h2 class="event-month" data-event-part>{{ event.month }}</h2>
-                <p
-                  v-for="line in event.lines"
-                  :key="line"
-                  class="event-copy"
-                  data-event-part
-                >
-                  {{ line }}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <div
-            class="plan-card-stack"
-            :style="{ '--plan-rotation': `${item.planRotation ?? 7}deg` }"
-          >
-            <div
-              class="plan-card"
-              :class="{ 'plan-card--placeholder': !item.plan }"
+            <section
+              class="events-panel"
+              tabindex="0"
+              :aria-label="`${item.year}年重要事件`"
             >
-              <img
-                v-if="item.plan"
-                :class="{ 'plan-card__image--cover': item.planFit === 'cover' }"
-                :src="item.plan"
-                :alt="`${item.year}年规划图`"
-              />
-              <div v-else class="plan-placeholder" aria-label="规划图资料待补充">
-                <span>{{ item.year }}</span>
-                <strong>PLANNING ARCHIVE</strong>
-                <small>资料待补充</small>
+              <div class="events-track">
+                <div
+                  v-for="(event, eventIndex) in item.events"
+                  :key="`${event.month}-${eventIndex}`"
+                  class="event-block"
+                >
+                  <h2 class="event-month" data-event-part>{{ event.month }}</h2>
+                  <p
+                    v-for="line in event.lines"
+                    :key="line"
+                    class="event-copy"
+                    :class="{ 'event-copy--height-34': EVENT_COPY_HEIGHT_34_YEARS.has(item.year) }"
+                    data-event-part
+                  >
+                    {{ line }}
+                  </p>
+                </div>
               </div>
-            </div>
+            </section>
           </div>
+
+          <img
+            v-if="item.planCardImage"
+            class="plan-card-stack"
+            :src="item.planCardImage"
+            :alt="`${item.year}年规划图`"
+          />
         </article>
       </SwiperSlide>
     </Swiper>
@@ -82,11 +70,11 @@
       </button>
       <button
         class="year-nav__next"
+        :class="{ 'year-nav__next--result': currentIndex === timeline.length - 1 }"
         type="button"
-        :disabled="currentIndex === timeline.length - 1"
-        @click="swiper?.slideNext()"
+        @click="goNext"
       >
-        下一年
+        {{ currentIndex === timeline.length - 1 ? '查看我的基因图谱' : '下一年' }}
       </button>
     </nav>
 
@@ -101,17 +89,19 @@ import { gsap } from 'gsap';
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Swiper, SwiperSlide } from 'swiper/vue';
+import { createRandomResultIndex } from '../data/resultProfiles';
 import 'swiper/css';
 
 const FIRST_YEAR = 2009;
 const LAST_YEAR = 2026;
+const EVENT_COPY_HEIGHT_34_YEARS = new Set([2009, 2010, 2016, 2021, 2022, 2024, 2025]);
+const PLAN_CARD_HIDDEN_YEARS = new Set([2011, 2016]);
 
 const knownTimeline = {
   2009: {
     title: '原点',
     subtitle: '未来科学城的故事，从这一年开始',
-    background: '/assets/timeline-bg-city.png',
-    plan: '/assets/timeline-plan-2009.png',
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '7月28日',
@@ -128,8 +118,7 @@ const knownTimeline = {
   2010: {
     title: '奠基',
     subtitle: '蓝图落定，未来可期',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2010.png',
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '3月',
@@ -151,9 +140,7 @@ const knownTimeline = {
   2011: {
     title: '扎根',
     subtitle: '从规划图纸到土地，落地生根',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2010.png',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '7月',
@@ -171,10 +158,7 @@ const knownTimeline = {
   2012: {
     title: '安家',
     subtitle: '第一批居民，第一次回家',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2012.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '5月',
@@ -193,10 +177,7 @@ const knownTimeline = {
   2013: {
     title: '生长',
     subtitle: '骨架拉开，脉络初成',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2013.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '7月',
@@ -211,10 +192,7 @@ const knownTimeline = {
   2014: {
     title: '成城',
     subtitle: '这里开始有“城”的样子',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2014.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '1月',
@@ -248,10 +226,7 @@ const knownTimeline = {
   2015: {
     title: '集团化',
     subtitle: '从“公司”到“集团”，格局由此打开',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2015.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '6月',
@@ -274,9 +249,7 @@ const knownTimeline = {
   2016: {
     title: '蓄势',
     subtitle: '定位明确，使命清晰',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2010.png',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '9月',
@@ -290,10 +263,7 @@ const knownTimeline = {
   2017: {
     title: '蝶变',
     subtitle: '区域更名，战略升级',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2017.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '2月',
@@ -323,10 +293,7 @@ const knownTimeline = {
   2018: {
     title: '深耕',
     subtitle: '拓荒到精耕，每一步都在铺路',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2018.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '2017年7月—2018年1月',
@@ -348,10 +315,7 @@ const knownTimeline = {
   2019: {
     title: '扩容',
     subtitle: '增容16倍，擘画新格局',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2019.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '6月',
@@ -390,9 +354,7 @@ const knownTimeline = {
   2020: {
     title: '跃升',
     subtitle: '“两区”加持，能级提升',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2020.png',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '4月',
@@ -417,10 +379,7 @@ const knownTimeline = {
   2021: {
     title: '绿意',
     subtitle: '低碳基底，生态样板',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2021.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '4月—11月',
@@ -447,10 +406,7 @@ const knownTimeline = {
   2022: {
     title: '精进',
     subtitle: '机构整合，“软实力”在生长',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2022.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '6月',
@@ -476,10 +432,7 @@ const knownTimeline = {
   2023: {
     title: '突破',
     subtitle: '首创频出，业务版图“破界”',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2023.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '5月',
@@ -524,10 +477,7 @@ const knownTimeline = {
   2024: {
     title: '焕新',
     subtitle: '未来所向，城长以新',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2024.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '1月',
@@ -572,10 +522,7 @@ const knownTimeline = {
   2025: {
     title: '跨越',
     subtitle: '稳中求进，蓄势新程',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2025.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '3月—4月',
@@ -648,10 +595,7 @@ const knownTimeline = {
   2026: {
     title: '此刻',
     subtitle: '你在这里，我们一起向前',
-    background: '/assets/timeline-bg-park.png',
-    plan: '/assets/timeline-plan-2026.jpg',
-    planFit: 'cover',
-    planRotation: 11.49,
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '3月',
@@ -698,8 +642,7 @@ const timeline = Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, index) =
     year,
     title: '待续',
     subtitle: '这一年的故事，等待补充',
-    background: '/assets/timeline-bg-park.png',
-    plan: '',
+    background: '/assets/timeline-bg-park.webp',
     events: [
       {
         month: '资料待补充',
@@ -707,7 +650,16 @@ const timeline = Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, index) =
       }
     ]
   };
-}).map((item, index) => ({ year: FIRST_YEAR + index, ...item }));
+}).map((item, index) => {
+  const year = FIRST_YEAR + index;
+  const shortYear = String(year).slice(-2);
+
+  return {
+    year,
+    ...item,
+    planCardImage: PLAN_CARD_HIDDEN_YEARS.has(year) ? '' : `/assets/${shortYear}.webp`
+  };
+});
 
 const route = useRoute();
 const router = useRouter();
@@ -734,9 +686,23 @@ const animateActiveEvents = async () => {
   const track = activeSlide?.querySelector('.events-track');
   const parts = activeSlide?.querySelectorAll('[data-event-part]');
   const background = activeSlide?.querySelector('.timeline-slide__background');
+  const wash = activeSlide?.querySelector('.timeline-slide__wash');
   const headingParts = activeSlide?.querySelectorAll('.year-heading > *');
+  const headingHighlight = activeSlide?.querySelector('.year-heading__highlight');
+  const headingTitle = activeSlide?.querySelector('.year-heading h1');
+  const headingSubtitle = activeSlide?.querySelector('.year-heading p');
   const planCard = activeSlide?.querySelector('.plan-card-stack');
-  if (!panel || !track || !parts?.length || !background || !headingParts?.length || !planCard) return;
+  if (
+    !panel ||
+    !track ||
+    !parts?.length ||
+    !background ||
+    !wash ||
+    !headingParts?.length ||
+    !headingHighlight ||
+    !headingTitle ||
+    !headingSubtitle
+  ) return;
 
   eventTimeline?.kill();
   panel.scrollTop = 0;
@@ -752,48 +718,81 @@ const animateActiveEvents = async () => {
   animationContext?.add(() => {
     gsap.set(track, { y: 0 });
     gsap.set(background, { clearProps: 'transform,opacity,visibility' });
-    gsap.set(planCard, { clearProps: 'transform,opacity,visibility' });
+    gsap.set(wash, { clearProps: 'opacity,visibility' });
+    if (planCard) gsap.set(planCard, { clearProps: 'transform,opacity,visibility' });
     gsap.set([...headingParts, ...parts], {
-      clearProps: 'transform,filter,opacity,visibility'
+      clearProps: 'transform,opacity,visibility'
     });
     if (prefersReducedMotion) return;
 
-    eventTimeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    eventTimeline = gsap.timeline({ defaults: { ease: 'power3.out', overwrite: 'auto' } });
     eventTimeline
+      .addLabel('scene', 0)
       .from(background, {
         autoAlpha: 0.72,
-        scale: 1.08,
-        duration: 2.1,
+        xPercent: -2,
+        scale: 1.1,
+        duration: 2.4,
         clearProps: 'transform,opacity,visibility'
-      }, 0)
-      .from(headingParts, {
+      }, 'scene')
+      .from(wash, {
         autoAlpha: 0,
-        x: -26,
-        duration: 1.05,
-        stagger: 0.16,
-        clearProps: 'transform,opacity,visibility'
-      }, 0.18)
-      .from(planCard, {
+        duration: 1.25,
+        clearProps: 'opacity,visibility'
+      }, 'scene+=0.08')
+      .addLabel('heading', 0.2)
+      .from(headingHighlight, {
         autoAlpha: 0,
-        x: 64,
-        y: 36,
-        rotation: '-=8',
-        duration: 1.5,
-        ease: 'back.out(1.25)',
+        scaleX: 0,
+        transformOrigin: 'left center',
+        duration: 0.9,
         clearProps: 'transform,opacity,visibility'
-      }, 0.65)
+      }, 'heading')
+      .from(headingTitle, {
+        autoAlpha: 0,
+        x: -34,
+        y: 8,
+        rotationY: -4,
+        transformPerspective: 600,
+        duration: 1.15,
+        clearProps: 'transform,opacity,visibility'
+      }, 'heading+=0.08')
+      .from(headingSubtitle, {
+        autoAlpha: 0,
+        x: -18,
+        y: 10,
+        duration: 0.9,
+        clearProps: 'transform,opacity,visibility'
+      }, 'heading+=0.34')
+      .addLabel('artwork', 0.62);
+
+    if (planCard) {
+      eventTimeline.from(planCard, {
+        autoAlpha: 0,
+        x: 78,
+        y: 44,
+        scale: 0.88,
+        rotation: '-=10',
+        duration: 1.65,
+        ease: 'back.out(1.15)',
+        clearProps: 'transform,opacity,visibility'
+      }, 'artwork');
+    }
+
+    eventTimeline
+      .addLabel('events', revealStart)
       .fromTo(
         parts,
-        { autoAlpha: 0, y: 10, filter: 'blur(4px)' },
+        { autoAlpha: 0, y: 16, scale: 0.985 },
         {
           autoAlpha: 1,
           y: 0,
-          filter: 'blur(0px)',
+          scale: 1,
           duration: revealDuration,
           stagger: revealStagger,
-          clearProps: 'transform,filter,visibility,opacity'
+          clearProps: 'transform,visibility,opacity'
         },
-        revealStart
+        'events'
       );
 
     if (overflow > 0) {
@@ -804,7 +803,7 @@ const animateActiveEvents = async () => {
           duration: Math.max(revealSpan, overflow / scrollPixelsPerSecond),
           ease: 'none'
         },
-        revealStart + revealSpan + scrollPause
+        `events+=${revealSpan + scrollPause}`
       );
     }
   });
@@ -827,7 +826,7 @@ const onMotionPreferenceChange = (event) => {
 };
 
 const goBack = () => {
-  router.push({
+  router.replace({
     name: 'Quiz',
     query: {
       step: 'profile',
@@ -838,13 +837,24 @@ const goBack = () => {
 };
 
 const showResult = () => {
-  router.push({
+  router.replace({
     name: 'Result',
     query: {
       year: String(FIRST_YEAR + currentIndex.value),
-      ...(typeof route.query.identity === 'string' ? { identity: route.query.identity } : {})
+      ...(typeof route.query.identity === 'string' ? { identity: route.query.identity } : {}),
+      trait: String(createRandomResultIndex()),
+      description: String(createRandomResultIndex())
     }
   });
+};
+
+const goNext = () => {
+  if (currentIndex.value === timeline.length - 1) {
+    showResult();
+    return;
+  }
+
+  swiper.value?.slideNext();
 };
 
 onMounted(() => {
@@ -905,17 +915,28 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
+.timeline-slide__content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 60px 18px 0;
+}
+
 .year-heading,
-.events-panel,
+.events-panel {
+  position: relative;
+  flex: 0 0 auto;
+}
+
 .plan-card-stack {
   position: absolute;
   z-index: 2;
 }
 
 .year-heading {
-  top: 104px;
-  left: 20px;
-  right: 16px;
+  margin: 0 0 0 2px;
   font-family: var(--rounded-display);
   font-weight: 800;
   text-shadow: 0 0 4px rgb(0 108 181 / 72%);
@@ -953,11 +974,10 @@ onUnmounted(() => {
 }
 
 .events-panel {
-  top: 229px;
-  right: 18px;
-  left: 18px;
   z-index: 3;
+  width: 100%;
   height: 250px;
+  margin-top: 39px;
   overflow: hidden;
   font-family: var(--rounded-display);
   font-weight: 800;
@@ -994,43 +1014,21 @@ onUnmounted(() => {
   line-height: 1.35;
 }
 
+.event-copy--height-34 {
+  height: 34px;
+}
+
 .event-copy + .event-copy {
   margin-top: 4px;
 }
 
 .plan-card-stack {
-  bottom: 50px;
-  left: calc(50% - 78px);
-  width: 266px;
-  height: 285px;
-  isolation: isolate;
-  transform: rotate(var(--plan-rotation));
-  transform-origin: 55% 100%;
-}
-
-.plan-card-stack::before {
-  position: absolute;
-  inset: -7px 0 3px;
-  z-index: -1;
-  border-radius: 16.26px;
-  opacity: 0.5;
-  background: #feffff;
-  box-shadow: 0 0 8.13px 0 #83d2ef;
-  content: '';
-  transform: rotate(calc(8deg - var(--plan-rotation)));
-  transform-origin: 50% 100%;
-}
-
-.plan-card {
-  position: absolute;
-  inset: 0;
-  box-sizing: border-box;
-  padding: 14px 14px 44px;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 82%);
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 16px 28px rgb(0 66 99 / 24%);
+  right: -8px;
+  bottom: 40px;
+  width: 301.5px;
+  height: 326px;
+  object-fit: contain;
+  rotate: 11deg;
 }
 
 .swiper-slide-active .timeline-slide__background,
@@ -1038,48 +1036,6 @@ onUnmounted(() => {
 .swiper-slide-active .events-track,
 .swiper-slide-active .plan-card-stack {
   will-change: transform, opacity;
-}
-
-.plan-card img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.plan-card .plan-card__image--cover {
-  object-fit: cover;
-}
-
-.plan-card--placeholder {
-  background: linear-gradient(145deg, #f8fcff, #d9eef8);
-}
-
-.plan-placeholder {
-  display: grid;
-  place-content: center;
-  width: 100%;
-  height: 100%;
-  border: 1px solid rgb(35 150 210 / 24%);
-  background:
-    linear-gradient(rgb(35 150 210 / 10%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(35 150 210 / 10%) 1px, transparent 1px);
-  background-size: 24px 24px;
-  color: #267ca9;
-  font-family: var(--rounded-display);
-  text-align: center;
-}
-
-.plan-placeholder span {
-  font-size: 54px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.plan-placeholder strong,
-.plan-placeholder small {
-  margin-top: 10px;
-  letter-spacing: 0.08em;
 }
 
 .top-nav {
@@ -1152,6 +1108,10 @@ onUnmounted(() => {
   border-radius: 24px 0 0 24px;
   background: linear-gradient(180deg, #1f9ff8, #44b9ff);
   color: #fff;
+}
+
+.year-nav .year-nav__next--result {
+  width: 170px;
 }
 
 .year-nav button:disabled {

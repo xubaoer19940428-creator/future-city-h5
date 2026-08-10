@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
+import { installWeChatToolbarGuard } from './utils/wechat';
 import './styles/main.css';
 
 const DESIGN_WIDTH = 390;
@@ -22,6 +23,8 @@ updateRootRem();
 window.addEventListener('resize', scheduleRootRemUpdate, { passive: true });
 window.addEventListener('orientationchange', scheduleRootRemUpdate, { passive: true });
 window.visualViewport?.addEventListener('resize', scheduleRootRemUpdate, { passive: true });
+
+installWeChatToolbarGuard(router);
 
 const app = createApp(App);
 app.use(router);

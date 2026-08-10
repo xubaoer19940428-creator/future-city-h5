@@ -24,7 +24,7 @@ const routes = [
     path: '/result',
     name: 'Result',
     component: () => import('../views/ResultView.vue'),
-    meta: { title: '未来科学城 MBTI - 奠基者' }
+    meta: { title: '未来科学城 MBTI - 基因图谱' }
   },
   {
     path: '/:pathMatch(.*)*',

@@ -2,23 +2,23 @@
   <main ref="homeRoot" class="home-page" data-node-id="68:2773">
     <div class="background" aria-hidden="true">
       <div class="background__layer background__layer--back">
-        <img src="/assets/bg-clean.png" alt="" />
+        <img src="/assets/bg-clean.webp" alt="" />
       </div>
       <div class="background__layer background__layer--front">
-        <img src="/assets/bg-layer-front.png" alt="" />
+        <img src="/assets/bg-layer-front.webp" alt="" />
       </div>
     </div>
 
     <img
       class="brand-logo"
-      src="/assets/logo.png"
+      src="/assets/logo.webp"
       alt="未来科学城集团"
       data-node-id="68:2780"
     />
 
     <h1 class="sr-only">我的未来科学城 MBTI</h1>
     <div class="title-art" data-node-id="68:2791" aria-hidden="true">
-      <img src="/assets/title-graphic.png" alt="" />
+      <img src="/assets/title-graphic.webp" alt="" />
     </div>
 
     <div class="star star--one" aria-hidden="true" data-node-id="68:2792">
@@ -38,6 +38,7 @@
     <RouterLink
       class="start-button"
       to="/quiz"
+      replace
       data-node-id="68:2788"
       aria-label="开始未来科学城 MBTI 测试"
       @click="playBackgroundAudio"
@@ -224,6 +225,7 @@ onUnmounted(() => {
   width: 108.55%;
   height: 108.55%;
   max-width: none;
+  will-change: transform, opacity;
 }
 
 .star--one {
@@ -234,7 +236,7 @@ onUnmounted(() => {
 }
 
 .star--one img {
-  transform: rotate(-15deg);
+  animation: star-glimmer-one 3.8s ease-in-out infinite;
 }
 
 .star--two {
@@ -245,7 +247,7 @@ onUnmounted(() => {
 }
 
 .star--two img {
-  transform: rotate(15deg);
+  animation: star-glimmer-two 4.4s ease-in-out 600ms infinite;
 }
 
 .tagline {
@@ -264,9 +266,10 @@ onUnmounted(() => {
   font-weight: 400;
   line-height: normal;
   white-space: nowrap;
+  filter: drop-shadow(0 2px 3px rgb(255 255 255 / 48%));
   transform: rotate(-4deg);
   transform-origin: center;
-  will-change: transform, filter;
+  will-change: transform;
   animation: tagline-breathe 2.8s ease-in-out infinite;
 }
 
@@ -306,12 +309,11 @@ onUnmounted(() => {
   padding: 0;
   border: 1px solid #fff;
   border-radius: 30px;
-  background: linear-gradient(180deg, #279bff 0%, #40b6ff 100%);
-  box-shadow: inset 0 0 6px #bce1ff;
+  background: linear-gradient(180deg, #279BFF 0%, #40B6FF 100%);
+  box-shadow: inset 0 0 9px #d8efff, 0 9px 22px rgb(0 110 200 / 26%);
   color: #fff;
   cursor: pointer;
-  text-decoration: none;
-  transition: filter 150ms ease, transform 150ms ease;
+  /* transition: filter 150ms ease, transform 150ms ease; */
   transform: translateX(-50%);
   isolation: isolate;
   will-change: transform;
@@ -325,7 +327,6 @@ onUnmounted(() => {
   z-index: -1;
   border: 1px solid rgb(255 255 255 / 55%);
   border-radius: inherit;
-  box-shadow: 0 0 16px rgb(39 155 255 / 35%);
   content: '';
   opacity: 0;
   pointer-events: none;
@@ -337,9 +338,6 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 600;
   line-height: normal;
-  -webkit-text-stroke: 1px #002936;
-  paint-order: stroke fill;
-  text-shadow: 0 1px 1px rgb(0 41 54 / 35%);
 }
 
 .start-button:active {
@@ -356,25 +354,47 @@ onUnmounted(() => {
 @keyframes tagline-breathe {
   0%,
   100% {
-    filter: drop-shadow(0 1px 1px rgb(255 255 255 / 24%));
     transform: rotate(-4deg) scale(1);
   }
 
   50% {
-    filter: drop-shadow(0 2px 3px rgb(255 255 255 / 66%));
     transform: rotate(-4deg) scale(1.04);
+  }
+}
+
+@keyframes star-glimmer-one {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translate3d(0, 2px, 0) rotate(-15deg) scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) rotate(-7deg) scale(1.08);
+  }
+}
+
+@keyframes star-glimmer-two {
+  0%,
+  100% {
+    opacity: 0.68;
+    transform: translate3d(0, 1px, 0) rotate(15deg) scale(0.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) rotate(23deg) scale(1.06);
   }
 }
 
 @keyframes button-breathe {
   0%,
   100% {
-    box-shadow: inset 0 0 6px #bce1ff, 0 6px 16px rgb(0 110 200 / 16%);
     transform: translateX(-50%) scale(1);
   }
 
   50% {
-    box-shadow: inset 0 0 9px #d8efff, 0 10px 25px rgb(0 110 200 / 34%);
     transform: translateX(-50%) scale(1.025);
   }
 }
@@ -408,6 +428,7 @@ onUnmounted(() => {
 @media (prefers-reduced-motion: reduce) {
   .tagline,
   .tagline p,
+  .star img,
   .start-button,
   .start-button::before {
     animation: none;

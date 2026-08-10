@@ -14,7 +14,7 @@
         :inert="currentStep !== 0"
       >
         <div class="scene-window" aria-hidden="true">
-          <img class="scene-image" src="/assets/bg-2.png" alt="" />
+          <img class="scene-image" src="/assets/bg-2.webp" alt="" />
         </div>
 
         <h1 id="intro-title" class="intro-title">科创新都&nbsp; 未来之城</h1>
@@ -42,46 +42,50 @@
         :inert="currentStep !== 1"
       >
         <div class="scene-window" aria-hidden="true">
-          <img class="scene-image" src="/assets/bg-2.png" alt="" />
+          <img class="scene-image" src="/assets/bg-2.webp" alt="" />
         </div>
         <div class="form-tint" aria-hidden="true"></div>
 
-        <div class="form-heading">
-          <img class="form-heading__highlight" src="/assets/title-highlight.svg" alt="" />
-          <h2 id="form-title">你是谁？</h2>
-          <p class="form-heading__lead">从哪一年开始</p>
-          <p class="form-heading__question">你与未来科学城产生交集？</p>
+        <div class="form-content">
+          <div class="form-heading">
+            <img class="form-heading__highlight" src="/assets/title-highlight.svg" alt="" />
+            <h2 id="form-title">你是谁？</h2>
+            <p class="form-heading__lead">从哪一年开始</p>
+            <p class="form-heading__question">你与未来科学城产生交集？</p>
+          </div>
+
+          <div ref="formCopy" class="form-copy">
+            <p>选择你与未来科学城初次相遇那一年</p>
+            <p>入职、入驻、安家</p>
+            <p>或是第一次听说它的名字</p>
+            <p>重新发现</p>
+            <p>科创新都 未来之城</p>
+          </div>
+
+          <form class="profile-form" @submit.prevent="startJourney">
+            <QuizSelect
+              v-model="identity"
+              class="select-field select-field--identity"
+              :options="identityOptions"
+              label="选择你的身份"
+              placeholder="请选择你的身份"
+            />
+
+            <QuizSelect
+              v-model="year"
+              class="select-field select-field--year"
+              :options="yearOptions"
+              label="选择年份"
+              placeholder="请选择年份"
+              option-suffix="年"
+              placement="top"
+            />
+
+            <button class="journey-button" type="submit" :disabled="!identity || !year">
+              开启时光之旅
+            </button>
+          </form>
         </div>
-
-        <div ref="formCopy" class="form-copy">
-          <p>选择你与未来科学城初次相遇那一年</p>
-          <p>入职、入驻、安家</p>
-          <p>或是第一次听说它的名字</p>
-          <p>重新发现</p>
-          <p>科创新都 未来之城</p>
-        </div>
-
-        <form class="profile-form" @submit.prevent="startJourney">
-          <QuizSelect
-            v-model="identity"
-            class="select-field select-field--identity"
-            :options="identityOptions"
-            label="选择你的身份"
-            placeholder="请选择你的身份"
-          />
-
-          <QuizSelect
-            v-model="year"
-            class="select-field select-field--year"
-            :options="yearOptions"
-            label="选择年份"
-            placeholder="请选择年份"
-            option-suffix="年"
-            placement="top"
-          />
-
-          <button class="journey-button" type="submit" :disabled="!year">开启时光之旅</button>
-        </form>
       </section>
     </div>
 
@@ -102,6 +106,7 @@ import { gsap } from 'gsap';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import QuizSelect from '../components/QuizSelect.vue';
+import { RESULT_IDENTITIES } from '../data/resultProfiles';
 
 const route = useRoute();
 const router = useRouter();
@@ -111,7 +116,8 @@ const formCopy = ref(null);
 const currentStep = ref(route.query.step === 'profile' ? 1 : 0);
 const touchStartX = ref(0);
 const touchStartY = ref(0);
-const identity = ref(typeof route.query.identity === 'string' ? route.query.identity : '');
+const queryIdentity = typeof route.query.identity === 'string' ? route.query.identity : '';
+const identity = ref(RESULT_IDENTITIES.includes(queryIdentity) ? queryIdentity : '');
 const queryYear = Number(route.query.year);
 const year = ref(
   Number.isInteger(queryYear) && queryYear >= 2009 && queryYear <= 2026 ? queryYear : ''
@@ -122,13 +128,13 @@ let sceneTimeline;
 let reduceMotionQuery;
 let prefersReducedMotion = false;
 
-const identityOptions = ['科研工作者', '企业员工', '创业者', '园区建设者', '居民', '学生', '访客'];
+const identityOptions = RESULT_IDENTITIES;
 const yearOptions = computed(() => Array.from({ length: 18 }, (_, index) => 2026 - index));
 
 const startJourney = () => {
-  if (!year.value) return;
+  if (!RESULT_IDENTITIES.includes(identity.value) || !year.value) return;
 
-  router.push({
+  router.replace({
     name: 'Timeline',
     query: {
       year: String(year.value),
@@ -183,14 +189,14 @@ const animateStep = (step, delay = 0) => {
         }, 0.08)
         .fromTo(
           introCopy.value?.querySelectorAll('p'),
-          { autoAlpha: 0, y: 13, filter: 'blur(4px)' },
+          { autoAlpha: 0, y: 18, scale: 0.985 },
           {
             autoAlpha: 1,
             y: 0,
-            filter: 'blur(0px)',
+            scale: 1,
             duration: 0.5,
             stagger: 0.075,
-            clearProps: 'transform,filter,visibility,opacity'
+            clearProps: 'transform,visibility,opacity'
           },
           0.26
         )
@@ -213,14 +219,14 @@ const animateStep = (step, delay = 0) => {
       }, 0.05)
       .fromTo(
         formCopy.value?.querySelectorAll('p'),
-        { autoAlpha: 0, y: 12, filter: 'blur(4px)' },
+        { autoAlpha: 0, x: 18, y: 8 },
         {
           autoAlpha: 1,
+          x: 0,
           y: 0,
-          filter: 'blur(0px)',
           duration: 0.48,
           stagger: 0.075,
-          clearProps: 'transform,filter,visibility,opacity'
+          clearProps: 'transform,visibility,opacity'
         },
         0.28
       )
@@ -258,7 +264,7 @@ const goBack = () => {
     return;
   }
 
-  router.push('/');
+  router.replace('/');
 };
 
 const onTouchStart = (event) => {
@@ -312,7 +318,7 @@ onUnmounted(() => {
   display: flex;
   width: 200%;
   height: 100%;
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
@@ -361,12 +367,27 @@ onUnmounted(() => {
 
 .intro-title,
 .intro-copy,
-.swipe-hint,
-.form-heading,
-.form-copy,
-.profile-form {
+.swipe-hint {
   position: absolute;
   z-index: 2;
+}
+
+.form-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: clamp(78px, 12dvh, 104px) 20px max(24px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.form-content::-webkit-scrollbar {
+  display: none;
 }
 
 .intro-title {
@@ -479,8 +500,8 @@ onUnmounted(() => {
 }
 
 .form-heading {
-  top: 104px;
-  left: 20px;
+  position: relative;
+  flex: 0 0 auto;
   width: 240px;
   height: 133px;
   font-family: var(--rounded-display);
@@ -525,13 +546,13 @@ onUnmounted(() => {
 }
 
 .form-copy {
-  top: 266px;
-  left: 20px;
-  right: 20px;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
+  align-self: flex-end;
   gap: 8px;
-  width: auto;
+  width: 100%;
+  margin-top: clamp(16px, 4dvh, 32px);
   font-family: var(--rounded-display);
   font-size: 18px;
   font-weight: 800;
@@ -545,40 +566,39 @@ onUnmounted(() => {
 }
 
 .profile-form {
-  inset: 0;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: clamp(18px, 4dvh, 34px);
 }
 
 .select-field {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  width: auto;
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
   height: 60px;
 }
 
-.select-field--identity {
-  bottom: 270px;
-}
-
-.select-field--year {
-  bottom: 190px;
-}
-
 .journey-button {
-  position: absolute;
-  bottom: calc(80px + env(safe-area-inset-bottom));
-  left: 35px;
-  right: 35px;
+  position: relative;
+  flex: 0 0 auto;
+  align-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: auto;
+  width: calc(100% - 30px);
   height: 50px;
+  margin-top: 20px;
   padding: 0;
   border: 1px solid #fff;
   border-radius: 30px;
   background: linear-gradient(180deg, #279bff 0%, #40b6ff 100%);
-  box-shadow: inset 0 0 6px #bce1ff;
+  box-shadow: inset 0 0 9px #d8efff, 0 9px 22px rgb(0 110 200 / 26%);
   color: #fff;
   font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 16px;
@@ -641,13 +661,10 @@ onUnmounted(() => {
 @keyframes journey-breathe {
   0%,
   100% {
-    box-shadow: inset 0 0 6px #bce1ff, 0 6px 16px rgb(0 110 200 / 16%);
     transform: scale(1);
   }
 
   50% {
-    box-shadow: inset 0 0 10px #e3f4ff, 0 10px 26px rgb(0 110 200 / 34%);
-    filter: brightness(1.04);
     transform: scale(1.025);
   }
 }
@@ -665,27 +682,6 @@ onUnmounted(() => {
   100% {
     opacity: 0;
     transform: scale(1.1);
-  }
-}
-
-@media (max-height: 760px) {
-  .form-copy {
-    top: 245px;
-    gap: 4px;
-    font-size: 16px;
-    line-height: 22px;
-  }
-
-  .select-field--identity {
-    bottom: 240px;
-  }
-
-  .select-field--year {
-    bottom: 160px;
-  }
-
-  .journey-button {
-    bottom: calc(30px + env(safe-area-inset-bottom));
   }
 }
 

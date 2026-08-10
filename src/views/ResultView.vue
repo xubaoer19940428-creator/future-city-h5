@@ -17,66 +17,70 @@
       </button>
     </nav>
 
-    <article ref="posterCard" class="result-card">
-      <img class="result-card__accent" src="/assets/result-card-accent.svg" alt="" />
-      <img class="result-card__corner" src="/assets/result-card-corner.svg" alt="" />
+    <div class="result-content">
+      <div class="result-stage">
+        <div class="result-stage__canvas">
+          <article ref="posterCard" class="result-card">
+            <img class="result-card__accent" src="/assets/result-card-accent.svg" alt="" />
+            <img class="result-card__corner" src="/assets/result-card-corner.svg" alt="" />
 
-      <p class="result-card__eyebrow">WEILAIKEXUECHENG MBIT</p>
+            <p class="result-card__eyebrow">WEILAIKEXUECHENG MBTI</p>
 
-      <div class="result-card__title-wrap">
-        <img src="/assets/result-title-burst.svg" alt="" />
-        <h1 id="result-title">奠基者</h1>
+            <div class="result-card__title-wrap">
+              <img src="/assets/result-title-burst.svg" alt="" />
+              <h1 id="result-title">{{ result.title }}</h1>
+            </div>
+
+            <div class="result-character" aria-hidden="true">
+              <img :src="result.image" alt="" />
+            </div>
+
+            <p class="result-card__lead">{{ result.lead }}</p>
+            <p class="result-card__tag">{{ result.tag }}</p>
+            <span class="result-card__tag-line" aria-hidden="true"></span>
+
+            <div class="result-card__traits">
+              <p>{{ result.trait }}</p>
+            </div>
+
+            <div class="result-card__divider" aria-hidden="true"></div>
+            <span class="result-card__quote result-card__quote--open" aria-hidden="true">“</span>
+            <blockquote>{{ result.description }}</blockquote>
+            <span class="result-card__quote result-card__quote--close" aria-hidden="true">”</span>
+          </article>
+
+          <img
+            class="result-mascot result-mascot--speaker"
+            src="/assets/result-mascot-speaker.webp"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
       </div>
 
-      <div class="result-character" aria-hidden="true">
-        <img src="/assets/result-character.webp" alt="" />
+      <div class="result-controls">
+        <div class="result-actions">
+          <button class="result-button result-button--light" type="button" @click="generatePoster">
+            生成我的基因海报
+          </button>
+          <button class="result-button result-button--primary" type="button" @click="sharePoster">
+            分享给朋友
+          </button>
+        </div>
+
+        <button class="retry-button" type="button" @click="retryQuiz">
+          <img src="/assets/result-retry.svg" alt="" />
+          <span>再测一次</span>
+        </button>
+
+        <img
+          class="result-mascot result-mascot--star"
+          src="/assets/result-mascot-star.webp"
+          alt=""
+          aria-hidden="true"
+        />
       </div>
-
-      <p class="result-card__lead">故事的第一行，你已在场</p>
-      <p class="result-card__tag">把格局打开</p>
-      <span class="result-card__tag-line" aria-hidden="true"></span>
-
-      <div class="result-card__traits">
-        <p>大时代的解题人</p>
-        <p>“持久战”的定力担当者</p>
-        <p>穿越周期的长期主义者</p>
-      </div>
-
-      <div class="result-card__divider" aria-hidden="true"></div>
-      <span class="result-card__quote result-card__quote--open" aria-hidden="true">“</span>
-      <blockquote>
-        你没有亲自建高楼，却夯实了一座城能稳稳站住的底座——你付出的努力，都在这座城的模样里被看见
-      </blockquote>
-      <span class="result-card__quote result-card__quote--close" aria-hidden="true">”</span>
-    </article>
-
-    <img
-      class="result-mascot result-mascot--speaker"
-      src="/assets/result-mascot-speaker.webp"
-      alt=""
-      aria-hidden="true"
-    />
-
-    <div class="result-actions">
-      <button class="result-button result-button--light" type="button" @click="generatePoster">
-        生成我的基因海报
-      </button>
-      <button class="result-button result-button--primary" type="button" @click="sharePoster">
-        分享海报
-      </button>
     </div>
-
-    <button class="retry-button" type="button" @click="retryQuiz">
-      <img src="/assets/result-retry.svg" alt="" />
-      <span>再测一次</span>
-    </button>
-
-    <img
-      class="result-mascot result-mascot--star"
-      src="/assets/result-mascot-star.webp"
-      alt=""
-      aria-hidden="true"
-    />
 
     <p class="sr-only" role="status" aria-live="polite">{{ actionStatus }}</p>
   </main>
@@ -86,6 +90,12 @@
 import { gsap } from 'gsap';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import {
+  createRandomResultIndex,
+  getResultProfile,
+  normalizeResultIdentity,
+  normalizeResultYear
+} from '../data/resultProfiles';
 
 const route = useRoute();
 const router = useRouter();
@@ -96,13 +106,39 @@ let posterTimer;
 let animationContext;
 let entranceTimeline;
 
+const getQueryValue = (value) => Array.isArray(value) ? value[0] : value;
+const getResultOptionIndex = (value) => {
+  const queryValue = getQueryValue(value);
+  return typeof queryValue === 'string' && /^[0-2]$/.test(queryValue)
+    ? Number(queryValue)
+    : createRandomResultIndex();
+};
+
+const selectedYear = normalizeResultYear(getQueryValue(route.query.year));
+const selectedIdentity = normalizeResultIdentity(getQueryValue(route.query.identity));
+const traitIndex = getResultOptionIndex(route.query.trait);
+const descriptionIndex = getResultOptionIndex(route.query.description);
+const result = getResultProfile({
+  year: selectedYear,
+  identity: selectedIdentity,
+  traitIndex,
+  descriptionIndex
+});
+
+const stableResultQuery = {
+  year: String(result.year),
+  identity: result.identity,
+  trait: String(traitIndex),
+  description: String(descriptionIndex)
+};
+
 const timelineQuery = () => ({
-  ...(typeof route.query.year === 'string' ? { year: route.query.year } : { year: '2026' }),
-  ...(typeof route.query.identity === 'string' ? { identity: route.query.identity } : {})
+  year: String(result.year),
+  identity: result.identity
 });
 
 const goBack = () => {
-  router.push({ name: 'Timeline', query: timelineQuery() });
+  router.replace({ name: 'Timeline', query: timelineQuery() });
 };
 
 const generatePoster = () => {
@@ -120,8 +156,8 @@ const generatePoster = () => {
 
 const sharePoster = async () => {
   const shareData = {
-    title: '我的未来科学城基因海报',
-    text: '我的未来科学城基因是：奠基者',
+    title: `我的未来科学城基因海报｜${result.title}`,
+    text: `我的未来科学城基因是：${result.title}`,
     url: window.location.href
   };
 
@@ -140,10 +176,17 @@ const sharePoster = async () => {
 };
 
 const retryQuiz = () => {
-  router.push({ name: 'Quiz', query: { step: 'profile' } });
+  router.replace({ name: 'Quiz', query: { step: 'profile' } });
 };
 
 onMounted(() => {
+  const resolvedResultRoute = router.resolve({ name: 'Result', query: stableResultQuery });
+  if (resolvedResultRoute.fullPath !== route.fullPath) {
+    void router.replace({ name: 'Result', query: stableResultQuery });
+    return;
+  }
+  document.title = `未来科学城 MBTI - ${result.title}`;
+
   animationContext = gsap.context(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -254,12 +297,51 @@ onUnmounted(() => {
 
 <style scoped>
 .result-view {
+  --result-scale: 1;
+  --result-stage-height: 553px;
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: #40acf5;
   color: #333;
+}
+
+.result-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: clamp(76px, 14.34dvh, 121px) 0 max(24px, env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.result-content::-webkit-scrollbar {
+  display: none;
+}
+
+.result-stage {
+  position: relative;
+  flex: 0 0 var(--result-stage-height);
+  width: 100%;
+  height: var(--result-stage-height);
+}
+
+.result-stage__canvas {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 350px;
+  height: 553px;
+  transform: translateX(-50%) scale(var(--result-scale));
+  transform-origin: top center;
 }
 
 .result-scene {
@@ -357,8 +439,8 @@ onUnmounted(() => {
 
 .result-card {
   position: absolute;
-  top: 121px;
-  left: 50%;
+  top: 0;
+  left: 0;
   z-index: 3;
   width: 350px;
   height: 553px;
@@ -367,7 +449,6 @@ onUnmounted(() => {
   background: linear-gradient(180deg, #cef8ff 0%, #fff 49.52%, #fff 100%);
   box-shadow: 0 4px 4px rgb(0 0 0 / 5%);
   backdrop-filter: blur(2px);
-  margin-left: -175px;
   transition: filter 240ms ease, transform 240ms ease;
   transform-style: preserve-3d;
   will-change: transform, opacity;
@@ -444,9 +525,9 @@ onUnmounted(() => {
 
 .result-character {
   top: 47px;
-  left: 162px;
-  width: 233px;
-  height: 278px;
+  right:0;
+  width: 196px;
+  height: 320px;
   overflow: hidden;
   pointer-events: none;
   will-change: transform, opacity;
@@ -454,10 +535,10 @@ onUnmounted(() => {
 
 .result-character img {
   position: absolute;
-  top: -12.54%;
-  left: -0.07%;
-  width: 100.14%;
-  height: 149.21%;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .result-card__lead {
@@ -490,8 +571,9 @@ onUnmounted(() => {
 .result-card__traits {
   top: 234px;
   left: 18px;
+  width: 310px;
   font-size: 16px;
-  line-height: normal;
+  line-height: 1.45;
 }
 
 .result-card__traits p + p {
@@ -548,29 +630,33 @@ onUnmounted(() => {
 }
 
 .result-mascot--speaker {
-  top: 68px;
-  left: calc(50% - 190px);
+  top: -53px;
+  left: -15px;
   width: 90px;
   height: 104px;
   transform: rotate(180deg) scaleY(-1);
 }
 
 .result-mascot--star {
-  top: 727px;
-  left: calc(50% + 96px);
+  top: 27px;
+  left: 271px;
   width: 118px;
   height: 118px;
 }
 
+.result-controls {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(350px, calc(100% - 40px));
+  margin-top: 26px;
+}
+
 .result-actions {
-  position: absolute;
-  top: 700px;
-  left: 50%;
+  position: relative;
   z-index: 6;
   display: grid;
-  grid-template-columns: repeat(2, 170px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-left: -175px;
 }
 
 .result-button {
@@ -602,13 +688,13 @@ onUnmounted(() => {
 }
 
 .retry-button {
-  position: absolute;
-  top: 766px;
-  left: 50%;
+  position: relative;
   z-index: 8;
   display: flex;
   align-items: center;
   gap: 2px;
+  width: max-content;
+  margin: 16px auto 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -617,7 +703,6 @@ onUnmounted(() => {
   font-size: 14px;
   line-height: normal;
   cursor: pointer;
-  transform: translateX(-50%);
   transition: opacity 140ms ease-out, transform 140ms ease-out;
 }
 
@@ -639,7 +724,7 @@ onUnmounted(() => {
 
 .retry-button:active {
   opacity: 0.78;
-  transform: translateX(-50%) scale(0.97);
+  transform: scale(0.97);
 }
 
 .sr-only {
@@ -667,6 +752,36 @@ onUnmounted(() => {
   100% {
     filter: brightness(1);
     transform: scale(1);
+  }
+}
+
+@media (max-height: 800px) {
+  .result-view {
+    --result-scale: 0.9;
+    --result-stage-height: 498px;
+  }
+
+  .result-controls {
+    margin-top: 18px;
+  }
+
+  .retry-button {
+    margin-top: 14px;
+  }
+}
+
+@media (max-height: 700px) {
+  .result-view {
+    --result-scale: 0.82;
+    --result-stage-height: 454px;
+  }
+
+  .result-controls {
+    margin-top: 12px;
+  }
+
+  .retry-button {
+    margin-top: 12px;
   }
 }
 
