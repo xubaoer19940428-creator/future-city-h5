@@ -93,9 +93,11 @@
               placement="top"
             />
 
-            <button class="journey-button" type="submit" :disabled="!identity || !year">
-              开启时光之旅
-            </button>
+            <div class="journey-button-frame">
+              <button class="journey-button" type="submit" :disabled="!identity || !year">
+                <span>开启时光之旅</span>
+              </button>
+            </div>
           </form>
         </div>
       </section>
@@ -241,7 +243,7 @@ const animateStep = (step, delay = 0) => {
         stagger: 0.1,
         clearProps: 'transform,opacity,visibility'
       }, 0.56)
-      .from(slide.querySelector('.journey-button'), {
+      .from(slide.querySelector('.journey-button-frame'), {
         autoAlpha: 0,
         duration: 0.44,
         clearProps: 'opacity,visibility'
@@ -309,8 +311,6 @@ onUnmounted(() => {
 .quiz-flow {
   --rounded-display: 'Resource Han Rounded CN', 'Noto Sans SC', 'PingFang SC', sans-serif;
   position: relative;
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -320,10 +320,12 @@ onUnmounted(() => {
 }
 
 .quiz-track {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: flex;
-  flex: 1 1 auto;
   width: 200%;
-  min-height: 0;
+  height: 100%;
   transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
@@ -353,7 +355,7 @@ onUnmounted(() => {
   grid-area: 1 / 1;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px max(24px, env(safe-area-inset-bottom));
+  padding: 52px 20px max(24px, env(safe-area-inset-bottom));
 }
 
 .scene-window {
@@ -388,7 +390,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: 0 20px max(24px, env(safe-area-inset-bottom));
+  padding: 52px 20px max(24px, env(safe-area-inset-bottom));
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -457,9 +459,11 @@ onUnmounted(() => {
 }
 
 .top-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: 20;
   display: grid;
-  flex: 0 0 52px;
   grid-template-columns: 24px minmax(0, 1fr) 24px;
   align-items: center;
   width: 100%;
@@ -584,33 +588,50 @@ onUnmounted(() => {
   height: 60px;
 }
 
-.journey-button {
+.journey-button-frame {
   position: relative;
   flex: 0 0 auto;
   align-self: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: calc(100% - 30px);
   height: 50px;
   margin-top: 20px;
-  padding: 0;
-  border: 1px solid #fff;
+  padding: 1px;
   border-radius: 30px;
+  background: linear-gradient(180deg, #fff 0%, rgb(255 255 255 / 0%) 100%);
+  isolation: isolate;
+  will-change: transform;
+  animation: journey-breathe 2.6s ease-in-out infinite;
+}
+
+.journey-button-frame:has(:disabled) {
+  animation: none;
+}
+
+.journey-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 29px;
   background: linear-gradient(180deg, #279bff 0%, #40b6ff 100%);
-  box-shadow: inset 0 0 9px #d8efff, 0 9px 22px rgb(0 110 200 / 26%);
+  box-shadow: 0 0 6px 0 #bce1ff inset;
   color: #fff;
+  cursor: pointer;
+  transition: filter 150ms ease, transform 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.journey-button span {
   font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
   font-size: 16px;
   font-weight: 600;
   line-height: normal;
-  cursor: pointer;
-  will-change: transform;
-  animation: journey-breathe 2.8s ease-in-out infinite;
 }
 
 .journey-button:active {
-  animation: none;
   filter: brightness(0.96);
   transform: scale(0.98);
 }
@@ -619,7 +640,6 @@ onUnmounted(() => {
   cursor: not-allowed;
   filter: saturate(0.45);
   opacity: 0.58;
-  animation: none;
 }
 
 .journey-button:focus-visible,
@@ -647,7 +667,6 @@ onUnmounted(() => {
   }
 
   50% {
-    box-shadow: inset 0 0 9px #d8efff, 0 0 18px rgb(39 155 255 / 38%);
     transform: scale(1.025);
   }
 }
@@ -661,8 +680,12 @@ onUnmounted(() => {
     animation: none;
   }
 
-  .journey-button {
+  .journey-button-frame {
     animation: none;
+  }
+
+  .journey-button {
+    transition: none;
   }
 }
 </style>

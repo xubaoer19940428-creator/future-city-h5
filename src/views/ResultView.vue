@@ -111,13 +111,22 @@
     <p class="sr-only" role="status" aria-live="polite">{{ actionStatus }}</p>
 
     <Transition name="share-guide">
-      <div v-if="shareGuideVisible" class="share-guide" role="dialog" aria-modal="true">
-        <span class="share-guide__arrow" aria-hidden="true">↗</span>
-        <div class="share-guide__card">
-          <span class="share-guide__eyebrow">SHARE MY FUTURE</span>
-          <strong>点击右上角“···”</strong>
-          <p>发送给朋友，或分享到朋友圈</p>
-          <button type="button" @click="shareGuideVisible = false">我知道了</button>
+      <div
+        v-if="shareGuideVisible"
+        class="share-guide"
+        role="dialog"
+        aria-modal="true"
+        aria-label="分享指引"
+        @click="shareGuideVisible = false"
+      >
+        <div class="share-guide__content">
+          <img
+            class="share-guide__arrow"
+            src="/assets/share-guide-arrow.svg"
+            alt=""
+            aria-hidden="true"
+          />
+          <p class="share-guide__text">请点击此处进行分享～</p>
         </div>
       </div>
     </Transition>
@@ -126,7 +135,7 @@
 
 <script setup>
 import { gsap } from 'gsap';
-import html2canvas from 'html2canvas';
+import { domToPng } from 'modern-screenshot';
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
@@ -214,31 +223,22 @@ const generatePoster = async () => {
     await nextTick();
     await waitForPosterAssets();
 
-    const canvas = await html2canvas(posterCard.value, {
-      backgroundColor: null,
-      imageTimeout: 10000,
-      logging: false,
+    const cardEl = posterCard.value;
+    const dataUrl = await domToPng(cardEl, {
       scale: 2,
-      useCORS: true,
-      onclone: (clonedDocument) => {
-        const clonedCard = clonedDocument.querySelector('[data-poster-card]');
-        const clonedStage = clonedCard?.closest('.result-stage__canvas');
-
-        if (clonedStage) {
-          clonedStage.style.left = '0';
-          clonedStage.style.transform = 'none';
-        }
-        if (clonedCard) {
-          clonedCard.style.animation = 'none';
-          clonedCard.style.filter = 'none';
-          clonedCard.style.transform = 'none';
-          clonedCard.style.transition = 'none';
-        }
+      style: {
+        transform: 'none',
+        transformStyle: 'flat',
+        animation: 'none',
+        transition: 'none',
+        filter: 'none',
+        backdropFilter: 'none',
+        webkitBackdropFilter: 'none'
       }
     });
 
     if (!resultRoot.value) return;
-    posterSnapshot.value = canvas.toDataURL('image/png');
+    posterSnapshot.value = dataUrl;
     actionStatus.value = '基因海报已生成，请长按图片保存';
   } catch {
     actionStatus.value = '海报生成失败，请点击按钮重试';
@@ -248,11 +248,8 @@ const generatePoster = async () => {
 };
 
 const sharePoster = async () => {
-  if (isWeChatBrowser()) {
-    shareGuideVisible.value = true;
-    actionStatus.value = '请点击微信右上角菜单分享给朋友';
-    return;
-  }
+  shareGuideVisible.value = true;
+  actionStatus.value = '请点击右上角菜单进行分享';
 
   const shareData = {
     title: `我的未来科学城基因海报｜${result.title}`,
@@ -266,9 +263,6 @@ const sharePoster = async () => {
       actionStatus.value = '分享面板已打开';
       return;
     }
-
-    await navigator.clipboard.writeText(window.location.href);
-    actionStatus.value = '页面链接已复制';
   } catch (error) {
     if (error?.name !== 'AbortError') actionStatus.value = '暂时无法分享，请稍后重试';
   }
@@ -583,6 +577,7 @@ onUnmounted(() => {
   transition: filter 240ms ease, transform 240ms ease;
   transform-style: preserve-3d;
   will-change: transform, opacity;
+  box-sizing: border-box;
 }
 
 .result-card-snapshot {
@@ -631,6 +626,7 @@ onUnmounted(() => {
   position: absolute;
   top: 17px;
   left: 18px;
+  margin: 0;
   color: #9ae3ff;
   font-size: 12px;
   line-height: normal;
@@ -646,7 +642,8 @@ onUnmounted(() => {
 
 .result-card__title-wrap img {
   position: absolute;
-  inset: 0 auto auto 0;
+  top: 0;
+  left: 0;
   width: 100px;
   height: 100px;
 }
@@ -676,7 +673,8 @@ onUnmounted(() => {
 
 .result-character img {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -686,6 +684,7 @@ onUnmounted(() => {
   top: 133px;
   left: 18px;
   width: 318px;
+  margin: 0;
   font-size: 16px;
   font-weight: 500;
   line-height: normal;
@@ -694,11 +693,14 @@ onUnmounted(() => {
 .result-card__tag {
   top: 169px;
   left: 18px;
+  margin: 0;
   padding: 4px 10px;
   background: linear-gradient(90deg, #42dcff 0%, #2993ff 51.44%, #938cfe 100%);
   color: #fff;
   font-size: 18px;
-  line-height: normal;
+  line-height: 1.2;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .result-card__tag-line {
@@ -715,6 +717,10 @@ onUnmounted(() => {
   width: 310px;
   font-size: 16px;
   line-height: 1.45;
+}
+
+.result-card__traits p {
+  margin: 0;
 }
 
 .result-card__traits p + p {
@@ -753,6 +759,7 @@ onUnmounted(() => {
   z-index: 1;
   width: 310px;
   min-height: 92px;
+  margin: 0;
   padding: 12px;
   border-radius: 12px;
   background: linear-gradient(108deg, rgb(228 241 254 / 0%) 0%, rgb(228 241 254 / 90%) 49.52%, #e4f1fe 100%);
@@ -885,73 +892,39 @@ onUnmounted(() => {
 }
 
 .share-guide {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 200;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 110px 24px 0;
-  background: rgb(0 49 105 / 78%);
-  backdrop-filter: blur(6px);
+  background: rgb(0 0 0 / 50%);
+  cursor: pointer;
 }
 
-.share-guide__arrow {
+.share-guide__content {
   position: absolute;
-  top: 13px;
-  right: 17px;
-  color: #fff;
-  font-family: Georgia, serif;
-  font-size: 66px;
-  line-height: 1;
-  text-shadow: 0 0 18px rgb(118 224 255 / 90%);
-  transform: rotate(-7deg);
-}
-
-.share-guide__card {
+  top: max(12px, env(safe-area-inset-top));
+  right: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(320px, 100%);
-  padding: 26px 22px 22px;
-  border: 1px solid rgb(255 255 255 / 72%);
-  border-radius: 28px;
-  background: linear-gradient(155deg, rgb(255 255 255 / 96%), rgb(218 248 255 / 94%));
-  box-shadow: 0 18px 48px rgb(0 50 109 / 32%);
-  color: #057be8;
-  text-align: center;
+  pointer-events: none;
 }
 
-.share-guide__eyebrow {
-  margin-bottom: 8px;
-  color: #42b9f7;
-  font-size: 11px;
-  letter-spacing: 0.14em;
+.share-guide__arrow {
+  display: block;
+  width: 148px;
+  height: 85.57px;
 }
 
-.share-guide__card strong {
-  font-size: 23px;
-  line-height: 1.3;
-}
-
-.share-guide__card p {
-  margin-top: 7px;
-  color: #4387b9;
-  font-size: 15px;
-}
-
-.share-guide__card button {
-  width: 150px;
-  height: 42px;
-  margin-top: 20px;
-  border: 0;
-  border-radius: 24px;
-  background: linear-gradient(180deg, #279bff, #40b6ff);
-  box-shadow: inset 0 0 6px #bce1ff;
+.share-guide__text {
+  margin: 8px 0 0;
   color: #fff;
   font-family: 'Resource Han Rounded CN', 'PingFang SC', 'Noto Sans SC', sans-serif;
-  font-size: 15px;
-  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+  text-align: center;
+  text-shadow: 0 1px 4px rgb(0 0 0 / 40%);
 }
 
 .share-guide-enter-active,
