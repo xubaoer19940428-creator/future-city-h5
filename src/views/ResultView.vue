@@ -2,13 +2,6 @@
 	<main ref="resultRoot" class="result-view" aria-labelledby="result-title" data-poster-page>
 		<img class="wechat-share-thumbnail" src="/assets/title-graphic.webp" alt="" aria-hidden="true" />
 
-		<div class="result-scene" aria-hidden="true">
-			<img class="result-scene__cloud" src="/assets/result-cloud.webp" alt="" />
-			<div class="result-scene__city-window">
-				<img class="result-scene__city" src="/assets/result-city.webp" alt="" />
-			</div>
-		</div>
-
 		<nav class="top-nav" aria-label="页面导航">
 			<button class="top-nav__back" type="button" aria-label="返回时光之旅" @click="goBack">
 				<img src="/assets/nav-back.svg" alt="" />
@@ -21,10 +14,6 @@
 
 		<div class="result-content">
 			<div class="result-stage">
-				<div class="result-stage__scene" aria-hidden="true">
-					<img class="result-stage__cloud" src="/assets/result-cloud.webp" alt="" />
-				</div>
-
 				<div class="result-stage__canvas">
 					<div class="result-card-canvas">
 						<article class="result-card" :class="{ 'result-card--hidden': Boolean(posterSnapshot) }">
@@ -64,8 +53,6 @@
 
 					<img class="result-mascot result-mascot--speaker" src="/assets/result-mascot-speaker.webp" alt="" aria-hidden="true" />
 				</div>
-
-				<img v-if="posterSnapshot" class="result-page-snapshot" :src="posterSnapshot" :alt="`${result.title}未来科学城基因海报，长按图片保存`" draggable="false" />
 			</div>
 
 			<div class="result-controls">
@@ -80,9 +67,9 @@
 					<img src="/assets/result-retry.svg" alt="" />
 					<span>再测一次</span>
 				</button>
-
-				<img class="result-mascot result-mascot--star" src="/assets/result-mascot-star.webp" alt="" aria-hidden="true" />
 			</div>
+
+			<img v-if="posterSnapshot" class="result-page-snapshot" :src="posterSnapshot" :alt="`${result.title}未来科学城整页基因海报，长按图片保存`" draggable="false" />
 		</div>
 
 		<p class="sr-only" role="status" aria-live="polite">{{ actionStatus }}</p>
@@ -211,8 +198,7 @@ const generatePoster = async () => {
 		await nextTick()
 		const [posterFontCss] = await Promise.all([getPosterFontCss(), waitForPosterAssets()])
 
-		const captureEl = resultRoot.value.querySelector('.result-stage')
-		if (!captureEl) throw new Error('Unable to find result stage')
+		const captureEl = resultRoot.value
 		const captureWidth = captureEl.offsetWidth
 		const captureHeight = captureEl.offsetHeight
 		const currentFontSize = window.getComputedStyle(document.documentElement).fontSize
@@ -241,6 +227,18 @@ const generatePoster = async () => {
 					clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize
 				}
 
+				const excludedPosterElements = clonedNode?.querySelectorAll?.('.top-nav, .result-actions, .retry-button') ?? []
+				excludedPosterElements.forEach((element) => {
+					element.style.visibility = 'hidden'
+				})
+
+				const clonedResultCard = clonedNode?.querySelector?.('.result-card')
+				if (clonedResultCard) {
+					clonedResultCard.style.boxShadow = 'none'
+					clonedResultCard.style.backdropFilter = 'none'
+					clonedResultCard.style.webkitBackdropFilter = 'none'
+				}
+
 				const clonedPosterButton = clonedNode?.querySelector?.('.result-button--light')
 				if (clonedPosterButton) {
 					clonedPosterButton.removeAttribute('disabled')
@@ -253,7 +251,7 @@ const generatePoster = async () => {
 
 		if (!resultRoot.value) return
 		posterSnapshot.value = dataUrl
-		actionStatus.value = '基因海报已生成，请长按图片保存'
+		actionStatus.value = '整页基因海报已生成，请长按图片保存'
 	} catch {
 		actionStatus.value = '海报生成失败，请点击按钮重试'
 	} finally {
@@ -327,27 +325,6 @@ onMounted(() => {
 			})
 			.timeScale(0.5)
 		entranceTimeline
-			.from(
-				'.result-scene__cloud',
-				{
-					autoAlpha: 0,
-					scale: 1.06,
-					y: -22,
-					duration: 1.05,
-					clearProps: 'transform,opacity,visibility',
-				},
-				0,
-			)
-			.from(
-				'.result-scene__city-window',
-				{
-					autoAlpha: 0,
-					y: 34,
-					duration: 0.82,
-					clearProps: 'transform,opacity,visibility',
-				},
-				0.08,
-			)
 			.from(
 				'.top-nav',
 				{
@@ -457,18 +434,6 @@ onMounted(() => {
 				},
 				1.42,
 			)
-			.from(
-				'.result-mascot--star',
-				{
-					autoAlpha: 0,
-					y: 20,
-					scale: 0.82,
-					duration: 0.55,
-					ease: 'back.out(1.5)',
-					clearProps: 'transform,opacity,visibility',
-				},
-				1.5,
-			)
 	}, resultRoot.value)
 })
 
@@ -481,12 +446,12 @@ onUnmounted(() => {
 <style scoped>
 .result-view {
 	--result-scale: 1;
-	--result-stage-height: 606px;
+	--result-stage-height: 553px;
 	position: relative;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	background: #40acf5;
+	background: #40acf5 url('/assets/34346.png') center top / 100vw 100dvh no-repeat;
 	color: #333;
 }
 
@@ -508,7 +473,7 @@ onUnmounted(() => {
 	width: 100%;
 	height: 100%;
 	min-height: 0;
-	padding: 52px 0 max(24px, env(safe-area-inset-bottom));
+	padding: 67px 0 max(24px, env(safe-area-inset-bottom));
 	overflow-x: hidden;
 	overflow-y: auto;
 	overscroll-behavior: contain;
@@ -524,41 +489,13 @@ onUnmounted(() => {
 	flex: 0 0 var(--result-stage-height);
 	width: 100%;
 	height: var(--result-stage-height);
-	overflow: hidden;
-	background: #40acf5;
+	background: transparent;
 	isolation: isolate;
-}
-
-.result-stage__scene {
-	position: absolute;
-	inset: 0;
-	z-index: 0;
-	overflow: hidden;
-	pointer-events: none;
-}
-
-.result-stage__cloud {
-	position: absolute;
-	top: -135px;
-	left: 50%;
-	width: 544px;
-	height: 967px;
-	object-fit: cover;
-	opacity: 0.7;
-	transform: translateX(-50%);
-	-webkit-mask-image: url('/assets/result-cloud-mask.svg');
-	-webkit-mask-position: 72px 63px;
-	-webkit-mask-repeat: no-repeat;
-	-webkit-mask-size: 390px 797px;
-	mask-image: url('/assets/result-cloud-mask.svg');
-	mask-position: 72px 63px;
-	mask-repeat: no-repeat;
-	mask-size: 390px 797px;
 }
 
 .result-stage__canvas {
 	position: absolute;
-	top: 53px;
+	top: 0;
 	left: 50%;
 	z-index: 1;
 	width: 370px;
@@ -566,59 +503,6 @@ onUnmounted(() => {
 	margin-left: 10px;
 	transform: translateX(-50%) scale(var(--result-scale));
 	transform-origin: top center;
-}
-
-.result-scene {
-	position: absolute;
-	inset: 0;
-	overflow: hidden;
-	pointer-events: none;
-}
-
-.result-scene__cloud {
-	position: absolute;
-	top: -83px;
-	left: 50%;
-	width: 544px;
-	height: 967px;
-	object-fit: cover;
-	opacity: 0.7;
-	transform: translateX(-50%);
-	-webkit-mask-image: url('/assets/result-cloud-mask.svg');
-	-webkit-mask-position: 72px 63px;
-	-webkit-mask-repeat: no-repeat;
-	-webkit-mask-size: 390px 797px;
-	mask-image: url('/assets/result-cloud-mask.svg');
-	mask-position: 72px 63px;
-	mask-repeat: no-repeat;
-	mask-size: 390px 797px;
-}
-
-.result-scene__city-window {
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	width: 100%;
-	height: 153px;
-	overflow: hidden;
-	mix-blend-mode: luminosity;
-	transform: translateX(-50%);
-	-webkit-mask-image: url('/assets/result-city-mask.svg');
-	-webkit-mask-position: 0 -644px;
-	-webkit-mask-repeat: no-repeat;
-	-webkit-mask-size: 100% 797px;
-	mask-image: url('/assets/result-city-mask.svg');
-	mask-position: 0 -644px;
-	mask-repeat: no-repeat;
-	mask-size: 100% 797px;
-}
-
-.result-scene__city {
-	position: absolute;
-	top: -452.45%;
-	left: 0;
-	width: 100%;
-	height: 552.61%;
 }
 
 .top-nav {
@@ -939,13 +823,6 @@ onUnmounted(() => {
 	width: 90px;
 	height: 104px;
 	transform: rotate(180deg) scaleY(-1);
-}
-
-.result-mascot--star {
-	top: 27px;
-	left: 271px;
-	width: 118px;
-	height: 118px;
 }
 
 .result-controls {
