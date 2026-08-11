@@ -53,13 +53,24 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
   if (!isWeChatBrowser() || !window.wx) return false;
 
   const signedUrl = isIOS ? WECHAT_ENTRY_URL : window.location.href.split('#')[0];
+  const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
+  const signatureEndpoint = new URL('/api/wechat-signature', window.location.origin);
+  signatureEndpoint.searchParams.set('url', signedUrl);
+  if (debugEnabled) signatureEndpoint.searchParams.set('debug', 'ip');
+
   console.info('[WeChat JSSDK] requesting signature', { signedUrl, link, imageUrl });
-  const response = await fetch(`/api/wechat-signature?url=${encodeURIComponent(signedUrl)}`, {
+  const response = await fetch(signatureEndpoint, {
     cache: 'no-store'
   });
-  if (!response.ok) throw new Error('Unable to load WeChat signature');
-
   const config = await response.json();
+  if (!response.ok) {
+    const details = [
+      `HTTP ${response.status}`,
+      config.wechatErrorCode ? `WeChat ${config.wechatErrorCode}` : '',
+      config.outboundIp ? `outbound IP ${config.outboundIp}` : ''
+    ].filter(Boolean).join(', ');
+    throw new Error(`Unable to load WeChat signature: ${details}`);
+  }
 
   await new Promise((resolve, reject) => {
     window.wx.config({
