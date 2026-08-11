@@ -94,7 +94,12 @@
             />
 
             <div class="journey-button-frame">
-              <button class="journey-button" type="submit" :disabled="!identity || !year">
+              <button
+                class="journey-button"
+                type="button"
+                :disabled="!identity || !year"
+                @click.prevent.stop="startJourney"
+              >
                 <span>开启时光之旅</span>
               </button>
             </div>

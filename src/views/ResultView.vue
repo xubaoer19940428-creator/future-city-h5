@@ -55,10 +55,19 @@
               <p>{{ result.trait }}</p>
             </div>
 
-            <div class="result-card__divider" aria-hidden="true"></div>
             <span class="result-card__quote result-card__quote--open" aria-hidden="true">“</span>
             <blockquote>{{ result.description }}</blockquote>
             <span class="result-card__quote result-card__quote--close" aria-hidden="true">”</span>
+
+            <div class="result-card__footer">
+              <img class="result-card__qr" src="/assets/result-qr.webp" alt="未来科学城二维码" />
+              <p>扫一扫解锁<br />你的基因图谱</p>
+              <img
+                class="result-card__brand"
+                src="/assets/result-brand.webp"
+                alt="未来科学城集团"
+              />
+            </div>
           </article>
 
           <img
@@ -161,6 +170,34 @@ const shareGuideVisible = ref(false);
 const actionStatus = ref('');
 let animationContext;
 let entranceTimeline;
+let posterFontCssPromise;
+
+const getPosterFontCss = () => {
+  if (!posterFontCssPromise) {
+    posterFontCssPromise = fetch('/fonts/ResourceHanRoundedCN-Bold.woff2')
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load poster font');
+        return response.blob();
+      })
+      .then((blob) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener('load', () => resolve(reader.result), { once: true });
+        reader.addEventListener('error', () => reject(reader.error), { once: true });
+        reader.readAsDataURL(blob);
+      }))
+      .then((fontDataUrl) => `
+        @font-face {
+          font-family: 'Resource Han Rounded CN';
+          src: url('${fontDataUrl}') format('woff2');
+          font-style: normal;
+          font-weight: 700;
+          font-display: block;
+        }
+      `);
+  }
+
+  return posterFontCssPromise;
+};
 
 const getQueryValue = (value) => Array.isArray(value) ? value[0] : value;
 const getResultOptionIndex = (value) => {
@@ -210,6 +247,7 @@ const waitForPosterAssets = async () => {
 
   await Promise.all([
     document.fonts?.ready ?? Promise.resolve(),
+    document.fonts?.load?.('700 50px "Resource Han Rounded CN"', result.title) ?? Promise.resolve(),
     ...imagePromises
   ]);
 };
@@ -226,31 +264,38 @@ const generatePoster = async () => {
 
   try {
     await nextTick();
-    await waitForPosterAssets();
+    const [posterFontCss] = await Promise.all([
+      getPosterFontCss(),
+      waitForPosterAssets()
+    ]);
 
     const cardEl = posterCard.value;
     const rect = cardEl.getBoundingClientRect();
     const currentFontSize = window.getComputedStyle(document.documentElement).fontSize;
 
-    // const dataUrl = await domToPng(cardEl, {
-    //   scale: 2,
-    //   width: rect.width,
-    //   height: rect.height,
-    //   style: {
-    //     transform: 'none',
-    //     transformStyle: 'flat',
-    //     animation: 'none',
-    //     transition: 'none',
-    //     filter: 'none',
-    //     backdropFilter: 'none',
-    //     webkitBackdropFilter: 'none'
-    //   },
-    //   onClone: (clonedNode) => {
-    //     if (clonedNode?.ownerDocument?.documentElement) {
-    //       clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize;
-    //     }
-    //   }
-    // });
+    const dataUrl = await domToPng(cardEl, {
+      scale: 2,
+      width: rect.width,
+      height: rect.height,
+      font: {
+        cssText: posterFontCss,
+        preferredFormat: 'woff2'
+      },
+      style: {
+        transform: 'none',
+        transformStyle: 'flat',
+        animation: 'none',
+        transition: 'none',
+        filter: 'none',
+        backdropFilter: 'none',
+        webkitBackdropFilter: 'none'
+      },
+      onCloneNode: (clonedNode) => {
+        if (clonedNode?.ownerDocument?.documentElement) {
+          clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize;
+        }
+      }
+    });
 
     if (!resultRoot.value) return;
     posterSnapshot.value = dataUrl;
@@ -263,8 +308,11 @@ const generatePoster = async () => {
 };
 
 const sharePoster = async () => {
-  shareGuideVisible.value = true;
-  actionStatus.value = '请点击右上角菜单进行分享';
+  if (isWeChatBrowser()) {
+    shareGuideVisible.value = true;
+    actionStatus.value = '请点击微信右上角菜单分享给朋友';
+    return;
+  }
 
   const shareData = {
     title: `我的未来科学城基因海报｜${result.title}`,
@@ -347,7 +395,6 @@ onMounted(() => {
       }, 0.08)
       .from('.result-card', {
         autoAlpha: 0,
-        y: 42,
         scale: 0.94,
         rotationY: -4,
         duration: 0.72,
@@ -456,7 +503,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: clamp(76px, 14.34dvh, 121px) 0 max(24px, env(safe-area-inset-bottom));
+  padding: 67px 0 max(24px, env(safe-area-inset-bottom));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -623,9 +670,9 @@ onUnmounted(() => {
 .result-card__tag,
 .result-card__tag-line,
 .result-card__traits,
-.result-card__divider,
 .result-card__quote,
-.result-card blockquote {
+.result-card blockquote,
+.result-card__footer {
   position: absolute;
 }
 
@@ -677,19 +724,20 @@ onUnmounted(() => {
   color: #0ca1ff;
   font-family: 'Resource Han Rounded CN', 'zihunbiantaoti', 'Noto Sans SC', 'PingFang SC', sans-serif;
   font-size: 50px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: normal;
   white-space: nowrap;
 }
 
 .result-character {
-  top: 47px;
+  top: 20px;
   right: -20px;
   width: 196px;
   height: 320px;
   overflow: hidden;
   pointer-events: none;
   will-change: transform, opacity;
+  z-index: 11;
 }
 
 .result-character img {
@@ -719,8 +767,7 @@ onUnmounted(() => {
   background: linear-gradient(90deg, #42dcff 0%, #2993ff 51.44%, #938cfe 100%);
   color: #fff;
   font-size: 18px;
-  line-height: 1.2;
-  border-radius: 4px;
+  line-height: 26px;
   box-sizing: border-box;
 }
 
@@ -733,11 +780,11 @@ onUnmounted(() => {
 }
 
 .result-card__traits {
-  top: 234px;
+  top: 226px;
   left: 18px;
   width: 310px;
   font-size: 16px;
-  line-height: 1.45;
+  line-height: 22px;
 }
 
 .result-card__traits p {
@@ -746,13 +793,6 @@ onUnmounted(() => {
 
 .result-card__traits p + p {
   margin-top: 3px;
-}
-
-.result-card__divider {
-  top: 327px;
-  left: 18px;
-  width: 310px;
-  border-top: 1px dashed #d7d5d5;
 }
 
 .result-card__quote {
@@ -765,21 +805,24 @@ onUnmounted(() => {
 }
 
 .result-card__quote--open {
-  top: 339px;
+  top: 268px;
   left: 18px;
 }
 
 .result-card__quote--close {
-  top: 485px;
+  top: 418px;
   left: 256px;
 }
 
 .result-card blockquote {
-  top: 398px;
+  top: 328px;
   left: 18px;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 310px;
-  min-height: 92px;
+  height: 90px;
   margin: 0;
   padding: 12px;
   border-radius: 12px;
@@ -788,7 +831,45 @@ onUnmounted(() => {
   font-size: 16px;
   font-style: normal;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 22px;
+}
+
+.result-card__footer {
+  top: 463px;
+  left: 18px;
+  width: 310px;
+  height: 60px;
+}
+
+.result-card__qr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 60px;
+  height: 60px;
+}
+
+.result-card__footer p {
+  position: absolute;
+  top: 26px;
+  left: 68px;
+  margin: 0;
+  color: #333;
+  font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.result-card__brand {
+  position: absolute;
+  top: 17px;
+  left: 190px;
+  display: block;
+  width: 120px;
+  height: 35.372px;
 }
 
 .result-mascot {
