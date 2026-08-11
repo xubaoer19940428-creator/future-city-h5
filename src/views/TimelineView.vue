@@ -894,11 +894,11 @@ onUnmounted(() => {
 	line-height: 25px;
 }
 
-.event-copy--height-34 {
-	/* min-height: 34px; */
+/* .event-copy--height-34 {
+	min-height: 34px;
 }
 
-/* .event-copy + .event-copy {
+.event-copy + .event-copy {
 	margin-top: 4px;
 } */
 
