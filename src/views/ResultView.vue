@@ -663,7 +663,7 @@ onUnmounted(() => {
 
 .result-character {
 	top: 20px;
-	right: -20px;
+	right: -22px;
 	width: 196px;
 	height: 320px;
 	overflow: hidden;
@@ -707,7 +707,7 @@ onUnmounted(() => {
 }
 
 .result-card__tag-line {
-	top: 190px;
+	top: 178px;
 	left: 18px;
 	width: 63px;
 	height: 4px;
