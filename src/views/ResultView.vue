@@ -173,7 +173,7 @@ let posterFontCssPromise;
 
 const getPosterFontCss = () => {
   if (!posterFontCssPromise) {
-    posterFontCssPromise = fetch('/fonts/ResourceHanRoundedCN-Bold.woff2?v=20260811-2')
+    posterFontCssPromise = fetch('/fonts/ResourceHanRoundedCN-Bold.woff2?v=20260811-3')
       .then((response) => {
         if (!response.ok) throw new Error('Unable to load poster font');
         return response.blob();
@@ -302,6 +302,8 @@ const generatePoster = async () => {
         if (clonedPosterButton) {
           clonedPosterButton.removeAttribute('disabled');
           clonedPosterButton.textContent = '生成我的基因海报';
+          clonedPosterButton.style.opacity = '1';
+          clonedPosterButton.style.cursor = 'pointer';
         }
       }
     });
