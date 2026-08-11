@@ -63,6 +63,17 @@ const sha1 = async (value) => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 };
 
+const getWeChatDebugDetails = (error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  const codeMatch = message.match(/WeChat API error:\s*(\d+)/i);
+  const ipMatch = message.match(/invalid ip\s+([^\s,]+)/i);
+
+  return {
+    ...(codeMatch ? { wechatErrorCode: Number(codeMatch[1]) } : {}),
+    ...(ipMatch ? { outboundIp: ipMatch[1] } : {})
+  };
+};
+
 export async function onRequestGet({ request, env }) {
   if (!env.WECHAT_APP_ID || !env.WECHAT_APP_SECRET) {
     return jsonResponse({ message: 'WeChat environment variables are not configured' }, 503);
@@ -109,6 +120,9 @@ export async function onRequestGet({ request, env }) {
     });
   } catch (error) {
     console.error(error);
-    return jsonResponse({ message: 'Unable to create WeChat signature' }, 502);
+    return jsonResponse({
+      message: 'Unable to create WeChat signature',
+      ...(requestUrl.searchParams.get('debug') === 'ip' ? getWeChatDebugDetails(error) : {})
+    }, 502);
   }
 }
