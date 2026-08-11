@@ -77,10 +77,10 @@ const knownTimeline = {
 				month: '7月28日',
 				lines: ['中组部、国务院国资委', '北京市政府共同启动中央企业人才创新创业', '基地建设', '以未来科技城命名，初期规划', '占地10平方公里'],
 			},
-            {
-                month: '8月21日',
-                lines:['北京未来科技城开发建设有限公司（未来科学城集团前身）正式成立','注册资本金4亿元','与未来科技城建设现场指挥部合署办公']
-            }
+			{
+				month: '8月21日',
+				lines: ['北京未来科技城开发建设有限公司（未来科学城集团前身）正式成立', '注册资本金4亿元', '与未来科技城建设现场指挥部合署办公'],
+			},
 		],
 	},
 	2010: {
@@ -849,7 +849,7 @@ onUnmounted(() => {
 .events-panel {
 	z-index: 3;
 	width: 100%;
-	height: 240px;
+	height: 30%;
 	margin-top: 20px;
 	overflow: hidden;
 	font-family: var(--rounded-display);
@@ -905,8 +905,8 @@ onUnmounted(() => {
 .plan-card-stack {
 	right: -8px;
 	bottom: 10px;
-	width: 301.5px;
-	height: 326px;
+	width: 252px;
+	height: 280px;
 	object-fit: contain;
 	rotate: 11deg;
 }
