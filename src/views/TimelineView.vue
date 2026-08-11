@@ -895,7 +895,7 @@ onUnmounted(() => {
 }
 
 .event-copy--height-34 {
-	min-height: 34px;
+	/* min-height: 34px; */
 }
 
 /* .event-copy + .event-copy {
