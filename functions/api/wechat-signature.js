@@ -1,6 +1,3 @@
-let cachedTicket = null;
-let ticketRequest = null;
-
 const jsonResponse = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: {
@@ -9,74 +6,9 @@ const jsonResponse = (body, status = 200) => new Response(JSON.stringify(body), 
   }
 });
 
-const requestJson = async (url, options) => {
-  const response = await fetch(url, options);
-  const data = await response.json();
-
-  if (!response.ok || data.errcode) {
-    throw new Error(`WeChat API error: ${data.errcode ?? response.status} ${data.errmsg ?? ''}`);
-  }
-
-  return data;
-};
-
-const requestJsapiTicket = async (env) => {
-  if (cachedTicket && cachedTicket.expiresAt > Date.now()) return cachedTicket.value;
-  if (ticketRequest) return ticketRequest;
-
-  ticketRequest = (async () => {
-    const tokenData = await requestJson('https://api.weixin.qq.com/cgi-bin/stable_token', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        grant_type: 'client_credential',
-        appid: env.WECHAT_APP_ID,
-        secret: env.WECHAT_APP_SECRET,
-        force_refresh: false
-      })
-    });
-    const ticketData = await requestJson(
-      `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${encodeURIComponent(tokenData.access_token)}&type=jsapi`
-    );
-    const expiresIn = Math.min(tokenData.expires_in ?? 7200, ticketData.expires_in ?? 7200);
-
-    cachedTicket = {
-      value: ticketData.ticket,
-      expiresAt: Date.now() + Math.max(expiresIn - 300, 60) * 1000
-    };
-
-    return cachedTicket.value;
-  })().finally(() => {
-    ticketRequest = null;
-  });
-
-  return ticketRequest;
-};
-
-const createNonce = () => {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-};
-
-const sha1 = async (value) => {
-  const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-};
-
-const getWeChatDebugDetails = (error) => {
-  const message = error instanceof Error ? error.message : String(error);
-  const codeMatch = message.match(/WeChat API error:\s*(\d+)/i);
-  const ipMatch = message.match(/invalid ip\s+([^\s,]+)/i);
-
-  return {
-    ...(codeMatch ? { wechatErrorCode: Number(codeMatch[1]) } : {}),
-    ...(ipMatch ? { outboundIp: ipMatch[1] } : {})
-  };
-};
-
 export async function onRequestGet({ request, env }) {
-  if (!env.WECHAT_APP_ID || !env.WECHAT_APP_SECRET) {
-    return jsonResponse({ message: 'WeChat environment variables are not configured' }, 503);
+  if (!env.WECHAT_SCF_URL || !env.WECHAT_PROXY_TOKEN) {
+    return jsonResponse({ message: 'WeChat SCF proxy variables are not configured' }, 503);
   }
 
   const requestUrl = new URL(request.url);
@@ -101,28 +33,34 @@ export async function onRequestGet({ request, env }) {
   }
   pageUrl.hash = '';
 
+  let scfUrl;
   try {
-    const ticket = await requestJsapiTicket(env);
-    const timestamp = Math.floor(Date.now() / 1000);
-    const nonceStr = createNonce();
-    const signatureSource = [
-      `jsapi_ticket=${ticket}`,
-      `noncestr=${nonceStr}`,
-      `timestamp=${timestamp}`,
-      `url=${pageUrl.href}`
-    ].join('&');
+    scfUrl = new URL(env.WECHAT_SCF_URL);
+  } catch {
+    return jsonResponse({ message: 'Invalid WECHAT_SCF_URL' }, 503);
+  }
+  scfUrl.searchParams.set('url', pageUrl.href);
+  if (requestUrl.searchParams.get('debug') === 'ip') {
+    scfUrl.searchParams.set('debug', 'ip');
+  }
 
-    return jsonResponse({
-      appId: env.WECHAT_APP_ID,
-      timestamp,
-      nonceStr,
-      signature: await sha1(signatureSource)
+  try {
+    const response = await fetch(scfUrl, {
+      headers: {
+        accept: 'application/json',
+        'x-wechat-proxy-token': env.WECHAT_PROXY_TOKEN
+      }
     });
+    const responseBody = await response.text();
+
+    try {
+      return jsonResponse(JSON.parse(responseBody), response.status);
+    } catch {
+      console.error('SCF returned a non-JSON response', response.status);
+      return jsonResponse({ message: 'Invalid response from WeChat signature service' }, 502);
+    }
   } catch (error) {
-    console.error(error);
-    return jsonResponse({
-      message: 'Unable to create WeChat signature',
-      ...(requestUrl.searchParams.get('debug') === 'ip' ? getWeChatDebugDetails(error) : {})
-    }, 502);
+    console.error('Unable to reach WeChat signature service', error);
+    return jsonResponse({ message: 'Unable to reach WeChat signature service' }, 502);
   }
 }

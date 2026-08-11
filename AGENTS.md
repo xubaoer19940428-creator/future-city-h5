@@ -85,7 +85,7 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - The generated Result `<img>` uses `-webkit-touch-callout: default`, enabling WeChat long-press saving. The light action button shows rendering, generated, and retry states. If capture fails, it reports failure through the screen-reader status and lets the user retry. Do not convert the poster image back to a canvas-only presentation.
 - Result share behavior is intentionally split: inside WeChat, both share buttons open the custom upper-right `···` guide because browser JavaScript cannot open WeChat's native share sheet; outside WeChat, use `navigator.share`, with clipboard copying as fallback.
 
-## Current file-by-file checkpoint (2026-08-10)
+## Current file-by-file checkpoint (2026-08-11)
 
 - `AGENTS.md`: project memory, responsive/layout constraints, implementation checkpoint, deployment requirements, and resume protocol.
 - `src/main.js`: dynamically sets root rem to `viewportWidth / 390 * 16`, updates through `requestAnimationFrame` on window resize, orientation change, and `visualViewport` resize, installs the WeChat toolbar guard, restores the initial memory-history route, then mounts Vue.
@@ -100,26 +100,24 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - `src/utils/wechat.js`: MicroMessenger detection, legacy toolbar-hide retries, router/page lifecycle guard, signature fetch, `wx.config`, friend sharing, and Timeline sharing.
 - `index.html`: loads WeChat JSSDK 1.6.0 before the Vite entry and includes description/Open Graph fallbacks pointing at the production share thumbnail.
 - `package.json`: includes `html2canvas@^1.4.1` in addition to Vue, Vue Router, GSAP, and Swiper.
-- `functions/api/wechat-signature.js`: EdgeOne Pages Function for allowlisted URL validation, stable-token/ticket retrieval, warm-isolate ticket caching, concurrency coalescing, nonce creation, and SHA-1 JSSDK signatures.
-- `.env.example`: documents only placeholders for the three server-side WeChat variables. Never put a real AppSecret in this repository.
+- `functions/api/wechat-signature.js`: same-origin EdgeOne Pages proxy that validates the page URL and forwards signing requests to SCF with a server-side proxy token; it no longer stores or uses the official-account AppSecret.
+- `scf/wechat-signature/index.js`: dependency-free Tencent Cloud SCF Event Function handler for stable-token/ticket retrieval, warm-instance ticket caching, concurrency coalescing, and SHA-1 JSSDK signatures.
+- `.env.example`: documents separate EdgeOne proxy and SCF signing variables. Never put a real AppSecret or proxy token in this repository.
 - `public/share.jpg`: 500×500 production share thumbnail. `public/fonts/ResourceHanRoundedCN-Bold.woff2` is the compressed/subset global font. Timeline planning images are `09.webp`–`26.webp` excluding 11/16; people artwork is `timeline-2009-people.webp`–`timeline-2026-people.webp`.
 
 ## Local completion versus external deployment
 
-- Locally implemented: responsive rem pipeline, global subset font, compressed runtime images, Home CTA styling, flow-based Quiz, Timeline content/art/animation behavior, data-driven Result, poster generation, long-press save image, WeChat routing guard, dynamic share configuration, EdgeOne signing function, metadata, and share thumbnail.
-- Still requires deployment-side configuration: set a real `wx...` AppID, store the AppSecret only in EdgeOne, set the allowed origin, deploy the repository including `/functions`, and add `17mbti.wlkxcgroup.com` to the official account's JS interface security domains.
-- Real JSSDK friend/Timeline sharing cannot be end-to-end verified locally without those official-account settings. `gh_2697fb4ad22a` remains unusable as an AppID. EdgeOne error `40164` remains an infrastructure/IP-whitelist issue requiring fixed Tencent Cloud egress.
+- Locally implemented: responsive rem pipeline, global subset font, compressed runtime images, Home CTA styling, flow-based Quiz, Timeline content/art/animation behavior, data-driven Result, poster generation, long-press save image, WeChat routing guard, dynamic share configuration, SCF signer, EdgeOne signing proxy, metadata, and share thumbnail.
+- Still requires deployment-side configuration: deploy the SCF code, set its official-account variables, create a public no-IAM-auth Function URL, set the SCF URL and matching proxy token in EdgeOne, deploy the repository including `/functions`, and add the SCF fixed egress IP to the official account API IP allowlist.
+- Real JSSDK friend/Timeline sharing cannot be end-to-end verified until the SCF fixed egress IP is allowlisted. `gh_2697fb4ad22a` remains unusable as an AppID.
 
-## EdgeOne WeChat signing backend
+## SCF and EdgeOne WeChat signing backend
 
-- This project is deployed on Tencent EdgeOne Pages. The minimal backend is an EdgeOne Pages Function at `functions/api/wechat-signature.js`, exposed as `/api/wechat-signature`. Official Pages Functions routing is based on the repository-root `/functions` tree; source-repository deployment must include that directory rather than uploading only the generated `dist` directory.
-- The function accepts only `GET /api/wechat-signature?url=<current URL>`, rejects URLs outside the configured origin, strips fragments, obtains a stable official-account access token and JSAPI ticket, and returns `appId`, `timestamp`, `nonceStr`, and a SHA-1 `signature`. It caches the ticket in the warm function isolate until five minutes before expiry and coalesces concurrent refresh requests.
-- Required EdgeOne project environment variables are documented in `.env.example`:
-  - `WECHAT_APP_ID`: the real developer AppID beginning with `wx`.
-  - `WECHAT_APP_SECRET`: the official-account AppSecret, stored only as an EdgeOne secret/environment variable.
-  - `WECHAT_ALLOWED_ORIGIN`: `https://17mbti.wlkxcgroup.com`.
+- Browser requests remain same-origin at `GET /api/wechat-signature?url=<current URL>`. `functions/api/wechat-signature.js` validates the URL and proxies to the SCF Function URL, so no frontend or CORS change is required.
+- `scf/wechat-signature/index.js` is deployed to the Beijing `wechat-signature` Event Function with handler `index.main_handler`, Node.js 20, 128MB memory, a 10-second timeout, public access, and fixed public egress IP `81.70.239.69`. It obtains and caches the official-account access token and JSAPI ticket, then returns `appId`, `timestamp`, `nonceStr`, and a 40-character SHA-1 `signature`.
+- Required EdgeOne variables are `WECHAT_SCF_URL`, `WECHAT_PROXY_TOKEN`, and `WECHAT_ALLOWED_ORIGIN=https://17mbti.wlkxcgroup.com`. Required SCF variables are `WECHAT_APP_ID`, `WECHAT_APP_SECRET`, `WECHAT_ALLOWED_ORIGIN`, and the same `WECHAT_PROXY_TOKEN` value. The SCF Function URL uses no Tencent IAM authentication because the server-to-server proxy token performs application-level authentication.
 - `gh_2697fb4ad22a` is the public account's original ID, not a usable JSSDK AppID. Never substitute it for `WECHAT_APP_ID`. Never commit or expose AppSecret in Vite variables, browser code, API responses, screenshots, logs, or project memory.
-- The public-account console must list `17mbti.wlkxcgroup.com` as a JS interface security domain. The signing function uses `https://api.weixin.qq.com/cgi-bin/stable_token` and the JSAPI ticket endpoint. If production returns WeChat error `40164`, EdgeOne's variable outbound IP is being rejected by the official-account IP whitelist; move the same signing logic to Tencent Cloud SCF/CloudBase with a fixed NAT egress IP rather than weakening secret handling.
+- The public-account console must list `17mbti.wlkxcgroup.com` as a JS interface security domain and `81.70.239.69` in its API IP allowlist. The SCF signer uses `https://api.weixin.qq.com/cgi-bin/stable_token` and the JSAPI ticket endpoint; a `40164` after migration means the SCF IP has not yet been allowlisted or the network configuration changed.
 - Frontend configuration lives in `configureWeChatShare()` in `src/utils/wechat.js`. It signs `window.location.href` without the fragment and then calls both `updateAppMessageShareData` and `updateTimelineShareData`. The visible share guide remains the graceful fallback if the signature service or JSSDK setup fails.
 
 ## Tool-output constraint
@@ -131,5 +129,5 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 ## Verification
 
 - Run `pnpm build` after code, style, font, or asset changes.
-- For the EdgeOne signing function, also run `node --check functions/api/wechat-signature.js` and a mocked handler call that verifies a 200 response and a 40-character hexadecimal SHA-1 signature. The real WeChat token flow can only be verified after EdgeOne secrets and the JS security domain are configured.
+- For the signing backend, also run `node --check functions/api/wechat-signature.js`, `node --check scf/wechat-signature/index.js`, a mocked SCF handler call that verifies a 200 response with a 40-character hexadecimal SHA-1 signature, and a mocked EdgeOne proxy call. The real WeChat token flow can only be verified after the SCF/EdgeOne variables and API IP allowlist are configured.
 - Preserve existing user changes in the working tree and avoid unrelated refactors.
