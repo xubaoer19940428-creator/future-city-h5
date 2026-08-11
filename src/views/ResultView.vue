@@ -341,8 +341,9 @@ const prepareWeChatShare = async () => {
       link: window.location.href.split('#')[0],
       imageUrl: new URL('/share.jpg', window.location.origin).href
     });
-  } catch {
-    // The visible guide still lets users use WeChat's default page sharing.
+  } catch (error) {
+    console.error('Unable to configure WeChat share', error);
+    actionStatus.value = '微信分享卡片配置失败，请刷新页面后重试';
   }
 };
 

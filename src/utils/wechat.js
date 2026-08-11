@@ -1,5 +1,21 @@
 export const isWeChatBrowser = () => /MicroMessenger/i.test(window.navigator.userAgent);
 const TOOLBAR_HIDE_RETRY_DELAYS = [80, 300, 800, 1500];
+const WECHAT_ENTRY_URL = window.location.href.split('#')[0];
+const isIOS = /iP(?:hone|ad|od)/i.test(window.navigator.userAgent);
+
+const updateWeChatShareData = (method, data) => new Promise((resolve, reject) => {
+  const shareApi = window.wx?.[method];
+  if (typeof shareApi !== 'function') {
+    reject(new Error(`WeChat API ${method} is unavailable`));
+    return;
+  }
+
+  shareApi({
+    ...data,
+    success: resolve,
+    fail: reject
+  });
+});
 
 const hideWeChatToolbar = () => {
   const bridge = window.WeixinJSBridge;
@@ -36,7 +52,7 @@ export const installWeChatToolbarGuard = (router) => {
 export const configureWeChatShare = async ({ title, description, link, imageUrl }) => {
   if (!isWeChatBrowser() || !window.wx) return false;
 
-  const signedUrl = window.location.href.split('#')[0];
+  const signedUrl = isIOS ? WECHAT_ENTRY_URL : window.location.href.split('#')[0];
   const response = await fetch(`/api/wechat-signature?url=${encodeURIComponent(signedUrl)}`, {
     cache: 'no-store'
   });
@@ -46,7 +62,7 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
 
   await new Promise((resolve, reject) => {
     window.wx.config({
-      debug: false,
+      debug: true,
       appId: config.appId,
       timestamp: config.timestamp,
       nonceStr: config.nonceStr,
@@ -57,17 +73,19 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
     window.wx.error(reject);
   });
 
-  window.wx.updateAppMessageShareData({
-    title,
-    desc: description,
-    link,
-    imgUrl: imageUrl
-  });
-  window.wx.updateTimelineShareData({
-    title,
-    link,
-    imgUrl: imageUrl
-  });
+  await Promise.all([
+    updateWeChatShareData('updateAppMessageShareData', {
+      title,
+      desc: description,
+      link,
+      imgUrl: imageUrl
+    }),
+    updateWeChatShareData('updateTimelineShareData', {
+      title,
+      link,
+      imgUrl: imageUrl
+    })
+  ]);
 
   return true;
 };
