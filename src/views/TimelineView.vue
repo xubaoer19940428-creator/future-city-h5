@@ -519,6 +519,7 @@ const initialIndex = computed(() => {
 	if (!Number.isInteger(requestedYear)) return 0
 	return Math.min(Math.max(requestedYear - FIRST_YEAR, 0), timeline.length - 1)
 })
+const selectedJourneyYear = computed(() => FIRST_YEAR + initialIndex.value)
 
 let animationContext
 let eventTimeline
@@ -699,7 +700,7 @@ const showResult = () => {
 	router.replace({
 		name: 'Result',
 		query: {
-			year: String(FIRST_YEAR + currentIndex.value),
+			year: String(selectedJourneyYear.value),
 			...(typeof route.query.identity === 'string' ? { identity: route.query.identity } : {}),
 			trait: String(createRandomResultIndex()),
 			description: String(createRandomResultIndex()),
