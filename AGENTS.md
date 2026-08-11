@@ -101,7 +101,7 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - Result's left text column was narrowed to avoid colliding with the 196 × 320px year character: title width 136px at 44px/1 line-height, lead and trait width 132px, and the tag 14px with a 132px maximum. All 810 year/identity/trait/description combinations were checked against this text geometry during the responsive pass.
 - Result uses `public/assets/result-qr.png`; this is an intentional untracked user-provided asset and must not be replaced with the former `result-qr.webp` reference or deleted.
 - Full-page capture uses the Result root's actual viewport dimensions. The 370px card canvas is now layout-only; do not switch capture back to that wrapper or add a card-shaped border radius to the page snapshot.
-- `pnpm build` and `git diff --check` passed after the final 370px coordinate-system adjustment and again after changing the first Quiz selector to open upward. The only build output was the existing VConsole dependency warning about `eval`.
+- `pnpm build`, `git diff --check`, and the full runtime-source font cmap validation passed after switching Result to full-page capture and regenerating the font subset. The only build output was the existing VConsole dependency warning about `eval`.
 - Real browser screenshot tooling was unavailable for the final device comparison. In the next thread, first hard-refresh the affected iOS/Android device, wait for automatic poster generation (or tap retry), and compare the entire Result viewport with the generated image before changing card typography or character position.
 
 ## Current file-by-file checkpoint (2026-08-11)
