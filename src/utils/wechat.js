@@ -74,7 +74,7 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
 
   await new Promise((resolve, reject) => {
     window.wx.config({
-      debug: true,
+      debug: debugEnabled,
       appId: config.appId,
       timestamp: config.timestamp,
       nonceStr: config.nonceStr,
