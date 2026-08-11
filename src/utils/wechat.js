@@ -3,6 +3,19 @@ const TOOLBAR_HIDE_RETRY_DELAYS = [80, 300, 800, 1500];
 const WECHAT_ENTRY_URL = window.location.href.split('#')[0];
 const isIOS = /iP(?:hone|ad|od)/i.test(window.navigator.userAgent);
 
+const waitForWeChatSdk = async () => {
+  for (let elapsed = 0; elapsed < 8000; elapsed += 100) {
+    const sdk = window.wx || window.jWeixin;
+    if (sdk) {
+      window.wx = sdk;
+      return;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 100));
+  }
+
+  throw new Error('WeChat JSSDK is unavailable');
+};
+
 const updateWeChatShareData = (method, data) => new Promise((resolve, reject) => {
   const shareApi = window.wx?.[method];
   if (typeof shareApi !== 'function') {
@@ -16,6 +29,11 @@ const updateWeChatShareData = (method, data) => new Promise((resolve, reject) =>
     fail: reject
   });
 });
+
+const registerLegacyWeChatShareData = (method, data) => {
+  const shareApi = window.wx?.[method];
+  if (typeof shareApi === 'function') shareApi(data);
+};
 
 const hideWeChatToolbar = () => {
   const bridge = window.WeixinJSBridge;
@@ -50,7 +68,8 @@ export const installWeChatToolbarGuard = (router) => {
 };
 
 export const configureWeChatShare = async ({ title, description, link, imageUrl }) => {
-  if (!isWeChatBrowser() || !window.wx) return false;
+  if (!isWeChatBrowser()) return false;
+  await waitForWeChatSdk();
 
   const signedUrl = isIOS ? WECHAT_ENTRY_URL : window.location.href.split('#')[0];
   const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
@@ -79,27 +98,55 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
       timestamp: config.timestamp,
       nonceStr: config.nonceStr,
       signature: config.signature,
-      jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+      jsApiList: [
+        'updateAppMessageShareData',
+        'updateTimelineShareData',
+        'onMenuShareAppMessage',
+        'onMenuShareTimeline'
+      ]
     });
     window.wx.ready(resolve);
     window.wx.error(reject);
   });
   console.info('[WeChat JSSDK] config ready');
 
+  const appMessageData = {
+    title,
+    desc: description,
+    link,
+    imgUrl: imageUrl
+  };
+  const timelineData = {
+    title,
+    link,
+    imgUrl: imageUrl
+  };
+
+  registerLegacyWeChatShareData('onMenuShareAppMessage', appMessageData);
+  registerLegacyWeChatShareData('onMenuShareTimeline', timelineData);
+
   await Promise.all([
-    updateWeChatShareData('updateAppMessageShareData', {
-      title,
-      desc: description,
-      link,
-      imgUrl: imageUrl
-    }),
-    updateWeChatShareData('updateTimelineShareData', {
-      title,
-      link,
-      imgUrl: imageUrl
-    })
+    updateWeChatShareData('updateAppMessageShareData', appMessageData),
+    updateWeChatShareData('updateTimelineShareData', timelineData)
   ]);
   console.info('[WeChat JSSDK] share data ready');
 
   return true;
+};
+
+export const installWeChatShareGuard = (router) => {
+  if (!isWeChatBrowser()) return;
+
+  router.afterEach((to) => {
+    if (to.name === 'Result') return;
+
+    void configureWeChatShare({
+      title: '未来科学城 MBTI',
+      description: '穿越时光之旅，看看你的未来科学城基因。',
+      link: new URL('/', window.location.origin).href,
+      imageUrl: new URL('/share.jpg', window.location.origin).href
+    }).catch((error) => {
+      console.error('Unable to configure default WeChat share', error);
+    });
+  });
 };
