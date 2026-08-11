@@ -27,48 +27,49 @@
     <div class="result-content">
       <div class="result-stage">
         <div class="result-stage__canvas">
-          <article
-            ref="posterCard"
-            class="result-card"
-            :class="{ 'result-card--hidden': Boolean(posterSnapshot) }"
-            data-poster-card
-          >
-            <img class="result-card__accent" src="/assets/result-card-accent.svg" alt="" />
-            <img class="result-card__corner" src="/assets/result-card-corner.svg" alt="" />
+          <div ref="posterCapture" class="result-card-capture" data-poster-card>
+            <article
+              ref="posterCard"
+              class="result-card"
+              :class="{ 'result-card--hidden': Boolean(posterSnapshot) }"
+            >
+              <img class="result-card__accent" src="/assets/result-card-accent.svg" alt="" />
+              <img class="result-card__corner" src="/assets/result-card-corner.svg" alt="" />
 
-            <p class="result-card__eyebrow">WEILAIKEXUECHENG MBTI</p>
+              <p class="result-card__eyebrow">您的未来科学城MBTI是：</p>
 
-            <div class="result-card__title-wrap">
-              <img src="/assets/result-title-burst.svg" alt="" />
-              <h1 id="result-title">{{ result.title }}</h1>
-            </div>
+              <div class="result-card__title-wrap">
+                <img src="/assets/result-title-burst.svg" alt="" />
+                <h1 id="result-title">{{ result.title }}</h1>
+              </div>
 
-            <div class="result-character" aria-hidden="true">
-              <img :src="result.image" alt="" />
-            </div>
+              <div class="result-character" aria-hidden="true">
+                <img :src="result.image" alt="" />
+              </div>
 
-            <p class="result-card__lead">{{ result.lead }}</p>
-            <p class="result-card__tag">{{ result.tag }}</p>
-            <span class="result-card__tag-line" aria-hidden="true"></span>
+              <p class="result-card__lead">{{ result.lead }}</p>
+              <p class="result-card__tag">{{ result.tag }}</p>
+              <span class="result-card__tag-line" aria-hidden="true"></span>
 
-            <div class="result-card__traits">
-              <p>{{ result.trait }}</p>
-            </div>
+              <div class="result-card__traits">
+                <p>{{ result.trait }}</p>
+              </div>
 
-            <span class="result-card__quote result-card__quote--open" aria-hidden="true">“</span>
-            <blockquote>{{ result.description }}</blockquote>
-            <span class="result-card__quote result-card__quote--close" aria-hidden="true">”</span>
+              <span class="result-card__quote result-card__quote--open" aria-hidden="true">“</span>
+              <blockquote>{{ result.description }}</blockquote>
+              <span class="result-card__quote result-card__quote--close" aria-hidden="true">”</span>
 
-            <div class="result-card__footer">
-              <img class="result-card__qr" src="/assets/result-qr.webp" alt="未来科学城二维码" />
-              <p>扫一扫解锁<br />你的基因图谱</p>
-              <img
-                class="result-card__brand"
-                src="/assets/result-brand.webp"
-                alt="未来科学城集团"
-              />
-            </div>
-          </article>
+              <div class="result-card__footer">
+                <img class="result-card__qr" src="/assets/result-qr.png" alt="未来科学城二维码" />
+                <p>扫一扫解锁<br />你的基因图谱</p>
+                <img
+                  class="result-card__brand"
+                  src="/assets/result-brand.webp"
+                  alt="未来科学城集团"
+                />
+              </div>
+            </article>
+          </div>
 
           <img
             v-if="posterSnapshot"
@@ -163,6 +164,7 @@ import { configureWeChatShare, isWeChatBrowser } from '../utils/wechat';
 const route = useRoute();
 const router = useRouter();
 const resultRoot = ref(null);
+const posterCapture = ref(null);
 const posterCard = ref(null);
 const posterSnapshot = ref('');
 const isPosterRendering = ref(false);
@@ -174,7 +176,7 @@ let posterFontCssPromise;
 
 const getPosterFontCss = () => {
   if (!posterFontCssPromise) {
-    posterFontCssPromise = fetch('/fonts/ResourceHanRoundedCN-Bold.woff2')
+    posterFontCssPromise = fetch('/fonts/ResourceHanRoundedCN-Bold.woff2?v=20260811-2')
       .then((response) => {
         if (!response.ok) throw new Error('Unable to load poster font');
         return response.blob();
@@ -236,6 +238,7 @@ const goBack = () => {
 
 const waitForPosterAssets = async () => {
   const images = Array.from(posterCard.value?.querySelectorAll('img') ?? []);
+  const posterFontText = [result.title, result.lead, result.tag, result.trait, result.description].join('');
   const imagePromises = images.map((image) => {
     if (image.complete) return Promise.resolve();
 
@@ -247,7 +250,7 @@ const waitForPosterAssets = async () => {
 
   await Promise.all([
     document.fonts?.ready ?? Promise.resolve(),
-    document.fonts?.load?.('700 50px "Resource Han Rounded CN"', result.title) ?? Promise.resolve(),
+    document.fonts?.load?.('700 16px "Resource Han Rounded CN"', posterFontText) ?? Promise.resolve(),
     ...imagePromises
   ]);
 };
@@ -257,7 +260,7 @@ const generatePoster = async () => {
     actionStatus.value = '请长按上方海报图片保存';
     return;
   }
-  if (!posterCard.value || isPosterRendering.value) return;
+  if (!posterCapture.value || !posterCard.value || isPosterRendering.value) return;
 
   isPosterRendering.value = true;
   actionStatus.value = '正在生成基因海报';
@@ -269,14 +272,15 @@ const generatePoster = async () => {
       waitForPosterAssets()
     ]);
 
-    const cardEl = posterCard.value;
-    const rect = cardEl.getBoundingClientRect();
+    const captureEl = posterCapture.value;
+    const captureWidth = captureEl.offsetWidth;
+    const captureHeight = captureEl.offsetHeight;
     const currentFontSize = window.getComputedStyle(document.documentElement).fontSize;
 
-    const dataUrl = await domToPng(cardEl, {
+    const dataUrl = await domToPng(captureEl, {
       scale: 2,
-      width: rect.width,
-      height: rect.height,
+      width: captureWidth,
+      height: captureHeight,
       font: {
         cssText: posterFontCss,
         preferredFormat: 'woff2'
@@ -288,7 +292,9 @@ const generatePoster = async () => {
         transition: 'none',
         filter: 'none',
         backdropFilter: 'none',
-        webkitBackdropFilter: 'none'
+        webkitBackdropFilter: 'none',
+        webkitTextSizeAdjust: '100%',
+        textSizeAdjust: '100%'
       },
       onCloneNode: (clonedNode) => {
         if (clonedNode?.ownerDocument?.documentElement) {
@@ -526,8 +532,9 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 350px;
+  width: 370px;
   height: 553px;
+  margin-left: 10px;
   transform: translateX(-50%) scale(var(--result-scale));
   transform-origin: top center;
 }
@@ -641,6 +648,17 @@ onUnmounted(() => {
   transform-style: preserve-3d;
   will-change: transform, opacity;
   box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.result-card-capture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 370px;
+  height: 553px;
 }
 
 .result-card--hidden {
@@ -654,9 +672,8 @@ onUnmounted(() => {
   left: 0;
   z-index: 4;
   display: block;
-  width: 350px;
+  width: 370px;
   height: 553px;
-  border-radius: 30px 80px 30px 30px;
   box-shadow: 0 4px 4px rgb(0 0 0 / 5%);
   object-fit: cover;
   -webkit-touch-callout: default;
@@ -696,7 +713,7 @@ onUnmounted(() => {
   top: 17px;
   left: 18px;
   margin: 0;
-  color: #9ae3ff;
+  color: #62cef8;
   font-size: 12px;
   line-height: normal;
   text-transform: uppercase;
@@ -705,7 +722,7 @@ onUnmounted(() => {
 .result-card__title-wrap {
   top: 35px;
   left: 18px;
-  width: 145px;
+  width: 136px;
   height: 102px;
 }
 
@@ -724,9 +741,9 @@ onUnmounted(() => {
   margin: 0;
   color: #0ca1ff;
   font-family: 'Resource Han Rounded CN', 'zihunbiantaoti', 'Noto Sans SC', 'PingFang SC', sans-serif;
-  font-size: 50px;
+  font-size: 44px;
   font-weight: 700;
-  line-height: normal;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -751,24 +768,27 @@ onUnmounted(() => {
 }
 
 .result-card__lead {
-  top: 133px;
+  top: 125px;
   left: 18px;
-  width: 318px;
+  width: 132px;
   margin: 0;
   font-size: 16px;
   font-weight: 500;
-  line-height: normal;
+  line-height: 18px;
+  text-wrap: balance;
 }
 
 .result-card__tag {
   top: 169px;
   left: 18px;
+  max-width: 132px;
   margin: 0;
-  padding: 4px 10px;
+  padding: 2px;
   background: linear-gradient(90deg, #42dcff 0%, #2993ff 51.44%, #938cfe 100%);
   color: #fff;
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 14px;
+  line-height: 22px;
+  white-space: nowrap;
   box-sizing: border-box;
 }
 
@@ -783,9 +803,12 @@ onUnmounted(() => {
 .result-card__traits {
   top: 226px;
   left: 18px;
-  width: 310px;
+  width: 132px;
+  font-family: 'Resource Han Rounded CN', 'Noto Sans SC', 'PingFang SC', sans-serif;
   font-size: 16px;
+  font-weight: 700;
   line-height: 22px;
+  text-wrap: balance;
 }
 
 .result-card__traits p {

@@ -288,13 +288,13 @@ onUnmounted(() => {
 
 .tagline--question {
   top: 45.06%;
-  left: 9.74%;
-  width: 87.1%;
+  left: 1%;
+  width: 98%;
   height: 7.05%;
 }
 
 .tagline--question p {
-  font-size: 26px;
+  font-size: 23px;
   animation-delay: 180ms;
 }
 
@@ -430,7 +430,7 @@ onUnmounted(() => {
   }
 
   .tagline--question p {
-    font-size: clamp(23px, 6.67vw, 26px);
+    font-size: clamp(20px, 5.9vw, 23px);
   }
 }
 

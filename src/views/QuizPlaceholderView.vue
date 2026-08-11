@@ -28,11 +28,14 @@
         </div>
 
         <div class="intro-content">
-          <h1 id="intro-title" class="intro-title">科创新都&nbsp; 未来之城</h1>
+          <h1 id="intro-title" class="intro-title">
+            <span>科创新都</span>
+            <span>未来之城</span>
+          </h1>
           <div ref="introCopy" class="intro-copy">
             <p class="intro-copy__year">2009—2026年</p>
             <p>未来科学城从一纸蓝图生长为</p>
-            <p>170.6平方公里的科创热土。</p>
+            <p>170.6平方公里的科创热土</p>
             <p>十七年时光</p>
             <p>每一次变革</p>
             <p>每一栋建筑</p>
@@ -41,8 +44,8 @@
           </div>
 
           <button class="swipe-hint" type="button" @click="currentStep = 1">
-            <span>左滑继续</span>
-            <img src="/assets/swipe-chevron.svg" alt="" />
+            <span>点击继续</span>
+            <!-- <img src="/assets/swipe-chevron.svg" alt="" /> -->
           </button>
         </div>
       </section>
@@ -81,6 +84,7 @@
               :options="identityOptions"
               label="选择你的身份"
               placeholder="请选择你的身份"
+              placement="top"
             />
 
             <QuizSelect
@@ -406,13 +410,17 @@ onUnmounted(() => {
 }
 
 .intro-title {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
   margin: 0;
   font-family: var(--rounded-display);
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 800;
   line-height: normal;
   text-align: center;
-  white-space: pre;
+  white-space: nowrap;
   will-change: transform, opacity;
 }
 
@@ -420,7 +428,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: min(310px, calc(100% - 40px));
+  width: min(330px, 100%);
   margin-top: 12px;
   font-family: var(--rounded-display);
   font-size: 20px;
@@ -432,6 +440,7 @@ onUnmounted(() => {
 
 .intro-copy p {
   margin: 0;
+  text-wrap: balance;
 }
 
 .intro-copy__year {
@@ -442,10 +451,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  align-self: flex-end;
+  align-self: center;
   gap: 2px;
   margin-top: auto;
-  margin-right: 10px;
   padding: 0;
   border: 0;
   background: transparent;

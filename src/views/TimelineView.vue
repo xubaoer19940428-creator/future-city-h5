@@ -8,8 +8,13 @@
 
 					<div class="timeline-slide__content">
 						<header class="year-heading">
-							<img class="year-heading__highlight" src="/assets/title-highlight.svg" alt="" />
-							<h1>{{ item.year }} · {{ item.title }}</h1>
+							<h1>
+								<span>{{ item.year }} ·</span>
+								<span class="year-heading__title">
+									<img class="year-heading__highlight" src="/assets/title-highlight.svg" alt="" />
+									<span class="year-heading__title-text">{{ item.title }}</span>
+								</span>
+							</h1>
 							<p>{{ item.subtitle }}</p>
 						</header>
 
@@ -72,6 +77,10 @@ const knownTimeline = {
 				month: '7月28日',
 				lines: ['中组部、国务院国资委', '北京市政府共同启动中央企业人才创新创业', '基地建设', '以未来科技城命名，初期规划', '占地10平方公里'],
 			},
+            {
+                month: '8月21日',
+                lines:['北京未来科技城开发建设有限公司（未来科学城集团前身）正式成立','注册资本金4亿元','与未来科技城建设现场指挥部合署办公']
+            }
 		],
 	},
 	2010: {
@@ -430,7 +439,7 @@ const knownTimeline = {
 			},
 			{
 				month: '12月',
-				lines: ['北京市政府办公厅', '国务院国资委办公厅联合印发《关于进一步', '促进中央企业加快建设未来科学城行动方案', '（2026-2028年）》'],
+				lines: ['北京市政府办公厅', '国务院国资委办公厅联合印发《关于进一步促进中央企业加快建设未来科学城行动方案（2026-2028年）》'],
 			},
 		],
 	},
@@ -548,7 +557,7 @@ const animateActiveEvents = async () => {
 		gsap.set(background, { clearProps: 'transform,opacity,visibility' })
 		gsap.set(wash, { clearProps: 'opacity,visibility' })
 		if (planCard) gsap.set(planCard, { clearProps: 'transform,opacity,visibility' })
-		gsap.set([...headingParts, ...parts], {
+		gsap.set([headingHighlight, ...headingParts, ...parts], {
 			clearProps: 'transform,opacity,visibility',
 		})
 		if (prefersReducedMotion) return
@@ -789,13 +798,12 @@ onUnmounted(() => {
 	margin: 0 0 0 2px;
 	font-family: var(--rounded-display);
 	font-weight: 800;
-	text-shadow: 0 0 4px rgb(0 108 181 / 72%);
 }
 
 .year-heading__highlight {
 	position: absolute;
 	top: 36px;
-	left: 130px;
+	left: calc(50% - 35px);
 	z-index: 0;
 	width: 70px;
 	height: 21px;
@@ -811,8 +819,22 @@ onUnmounted(() => {
 .year-heading h1 {
 	position: relative;
 	z-index: 1;
+	display: flex;
+	align-items: baseline;
+	gap: 0.25em;
 	font-size: 38px;
 	line-height: 1.25;
+	white-space: nowrap;
+}
+
+.year-heading__title {
+	position: relative;
+	display: inline-block;
+}
+
+.year-heading__title-text {
+	position: relative;
+	z-index: 1;
 }
 
 .year-heading p {
@@ -851,17 +873,22 @@ onUnmounted(() => {
 	margin-top: 0;
 }
 
+.event-month,
+.event-copy {
+	font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+}
+
 .event-month {
 	margin-bottom: 10px;
 	color: #fff500;
-	font-size: 28px;
+	font-size: 27px;
 	line-height: 1.2;
 	text-shadow: 0 0 4px rgb(0 108 181 / 55%);
 }
 
 .event-copy {
-	font-size: 18px;
-	line-height: 1.35;
+	font-size: 17px;
+	line-height: 2;
 }
 
 .event-copy--height-34 {
