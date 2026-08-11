@@ -232,25 +232,25 @@ const generatePoster = async () => {
     const rect = cardEl.getBoundingClientRect();
     const currentFontSize = window.getComputedStyle(document.documentElement).fontSize;
 
-    const dataUrl = await domToPng(cardEl, {
-      scale: 2,
-      width: rect.width,
-      height: rect.height,
-      style: {
-        transform: 'none',
-        transformStyle: 'flat',
-        animation: 'none',
-        transition: 'none',
-        filter: 'none',
-        backdropFilter: 'none',
-        webkitBackdropFilter: 'none'
-      },
-      onClone: (clonedNode) => {
-        if (clonedNode?.ownerDocument?.documentElement) {
-          clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize;
-        }
-      }
-    });
+    // const dataUrl = await domToPng(cardEl, {
+    //   scale: 2,
+    //   width: rect.width,
+    //   height: rect.height,
+    //   style: {
+    //     transform: 'none',
+    //     transformStyle: 'flat',
+    //     animation: 'none',
+    //     transition: 'none',
+    //     filter: 'none',
+    //     backdropFilter: 'none',
+    //     webkitBackdropFilter: 'none'
+    //   },
+    //   onClone: (clonedNode) => {
+    //     if (clonedNode?.ownerDocument?.documentElement) {
+    //       clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize;
+    //     }
+    //   }
+    // });
 
     if (!resultRoot.value) return;
     posterSnapshot.value = dataUrl;
@@ -684,7 +684,7 @@ onUnmounted(() => {
 
 .result-character {
   top: 47px;
-  right:0;
+  right: -20px;
   width: 196px;
   height: 320px;
   overflow: hidden;
