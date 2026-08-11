@@ -53,6 +53,7 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
   if (!isWeChatBrowser() || !window.wx) return false;
 
   const signedUrl = isIOS ? WECHAT_ENTRY_URL : window.location.href.split('#')[0];
+  console.info('[WeChat JSSDK] requesting signature', { signedUrl, link, imageUrl });
   const response = await fetch(`/api/wechat-signature?url=${encodeURIComponent(signedUrl)}`, {
     cache: 'no-store'
   });
@@ -72,6 +73,7 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
     window.wx.ready(resolve);
     window.wx.error(reject);
   });
+  console.info('[WeChat JSSDK] config ready');
 
   await Promise.all([
     updateWeChatShareData('updateAppMessageShareData', {
@@ -86,6 +88,7 @@ export const configureWeChatShare = async ({ title, description, link, imageUrl 
       imgUrl: imageUrl
     })
   ]);
+  console.info('[WeChat JSSDK] share data ready');
 
   return true;
 };

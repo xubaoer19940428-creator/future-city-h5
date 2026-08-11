@@ -6,7 +6,16 @@ import './styles/main.css';
 
 const DESIGN_WIDTH = 390;
 const DESIGN_ROOT_FONT_SIZE = 16;
+const debugConsoleEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 let remResizeFrame;
+
+const installDebugConsole = async () => {
+  if (!debugConsoleEnabled) return;
+
+  const { default: VConsole } = await import('vconsole');
+  new VConsole();
+  console.info('[vConsole] enabled');
+};
 
 const updateRootRem = () => {
   const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
@@ -27,6 +36,7 @@ window.visualViewport?.addEventListener('resize', scheduleRootRemUpdate, { passi
 installWeChatToolbarGuard(router);
 
 const mountApp = async () => {
+  await installDebugConsole();
   await prepareInitialRoute();
 
   const app = createApp(App);
