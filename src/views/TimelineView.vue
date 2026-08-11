@@ -798,6 +798,7 @@ onUnmounted(() => {
 	margin: 0 0 0 2px;
 	font-family: var(--rounded-display);
 	font-weight: 800;
+	text-shadow: 0 0 4px rgb(0 108 181 / 55%);
 }
 
 .year-heading__highlight {
@@ -876,6 +877,7 @@ onUnmounted(() => {
 .event-copy {
 	font-weight: 400;
 	font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
+	text-shadow: 0 0 4px rgb(0 108 181 / 55%);
 }
 
 .event-month {

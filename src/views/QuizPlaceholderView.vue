@@ -420,6 +420,7 @@ onUnmounted(() => {
   font-weight: 800;
   line-height: normal;
   text-align: center;
+  text-shadow: 0 0 4px rgb(0 108 181 / 55%);
   white-space: nowrap;
   will-change: transform, opacity;
 }
@@ -435,7 +436,7 @@ onUnmounted(() => {
   font-weight: 800;
   line-height: 1.45;
   text-align: center;
-  text-shadow: 0 0 4px #016cb5;
+  text-shadow: 0 0 4px rgb(0 108 181 / 55%);
 }
 
 .intro-copy p {
@@ -531,6 +532,7 @@ onUnmounted(() => {
   z-index: 1;
   margin: 0;
   line-height: 1.45;
+  text-shadow: 0 0 4px rgb(0 108 181 / 55%);
   white-space: nowrap;
 }
 
@@ -575,7 +577,7 @@ onUnmounted(() => {
   font-weight: 800;
   line-height: 26px;
   text-align: right;
-  text-shadow: 0 0 4px #016cb5;
+  text-shadow: 0 0 4px rgb(0 108 181 / 55%);
 }
 
 .form-copy p {
