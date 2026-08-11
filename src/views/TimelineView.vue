@@ -40,7 +40,7 @@
 				<img src="/assets/nav-back.svg" alt="" />
 			</button>
 			<span class="top-nav__title">我的未来科学城</span>
-			<img class="top-nav__share" src="/assets/nav-share.svg" alt="" aria-hidden="true" />
+			<!-- <img class="top-nav__share" src="/assets/nav-share.svg" alt="" aria-hidden="true" /> -->
 		</nav>
 
 		<nav class="year-nav" aria-label="年份导航">
@@ -848,7 +848,7 @@ onUnmounted(() => {
 .events-panel {
 	z-index: 3;
 	width: 100%;
-	height: 260px;
+	height: 240px;
 	margin-top: 20px;
 	overflow: hidden;
 	font-family: var(--rounded-display);
@@ -873,31 +873,32 @@ onUnmounted(() => {
 	margin-top: 0;
 }
 
-.event-month,
 .event-copy {
+	font-weight: 400;
 	font-family: 'PingFang SC', 'Noto Sans SC', sans-serif;
 }
 
 .event-month {
-	margin-bottom: 10px;
+	/* margin-bottom: 10px; */
+	font-weight: 600;
 	color: #fff500;
-	font-size: 27px;
-	line-height: 1.2;
+	font-size: 26px;
+	line-height: 36px;
 	text-shadow: 0 0 4px rgb(0 108 181 / 55%);
 }
 
 .event-copy {
-	font-size: 17px;
-	line-height: 2;
+	font-size: 18px;
+	line-height: 25px;
 }
 
 .event-copy--height-34 {
 	min-height: 34px;
 }
 
-.event-copy + .event-copy {
+/* .event-copy + .event-copy {
 	margin-top: 4px;
-}
+} */
 
 .plan-card-stack {
 	right: -8px;

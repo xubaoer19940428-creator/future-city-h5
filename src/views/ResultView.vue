@@ -1,5 +1,5 @@
 <template>
-  <main ref="resultRoot" class="result-view" aria-labelledby="result-title">
+  <main ref="resultRoot" class="result-view" aria-labelledby="result-title" data-poster-page>
     <img
       class="wechat-share-thumbnail"
       src="/assets/title-graphic.webp"
@@ -19,17 +19,16 @@
         <img src="/assets/nav-back.svg" alt="" />
       </button>
       <span class="top-nav__title">我的未来科学城</span>
-      <button class="top-nav__share" type="button" aria-label="分享结果" @click="sharePoster">
+      <!-- <button class="top-nav__share" type="button" aria-label="分享结果" @click="sharePoster">
         <img src="/assets/nav-share.svg" alt="" />
-      </button>
+      </button> -->
     </nav>
 
     <div class="result-content">
       <div class="result-stage">
         <div class="result-stage__canvas">
-          <div ref="posterCapture" class="result-card-capture" data-poster-card>
+          <div class="result-card-canvas">
             <article
-              ref="posterCard"
               class="result-card"
               :class="{ 'result-card--hidden': Boolean(posterSnapshot) }"
             >
@@ -64,20 +63,12 @@
                 <p>扫一扫解锁<br />你的基因图谱</p>
                 <img
                   class="result-card__brand"
-                  src="/assets/result-brand.webp"
+                  src="/assets/result-brand.png"
                   alt="未来科学城集团"
                 />
               </div>
             </article>
           </div>
-
-          <img
-            v-if="posterSnapshot"
-            class="result-card-snapshot"
-            :src="posterSnapshot"
-            :alt="`${result.title}未来科学城基因海报，长按图片保存`"
-            draggable="false"
-          />
 
           <img
             class="result-mascot result-mascot--speaker"
@@ -100,7 +91,7 @@
               isPosterRendering
                 ? '正在生成基因海报…'
                 : posterSnapshot
-                  ? '长按上方海报保存'
+                  ? '长按页面图片保存'
                   : '生成我的基因海报'
             }}
           </button>
@@ -121,6 +112,14 @@
           aria-hidden="true"
         />
       </div>
+
+      <img
+        v-if="posterSnapshot"
+        class="result-page-snapshot"
+        :src="posterSnapshot"
+        :alt="`${result.title}未来科学城整页基因海报，长按图片保存`"
+        draggable="false"
+      />
     </div>
 
     <p class="sr-only" role="status" aria-live="polite">{{ actionStatus }}</p>
@@ -137,7 +136,7 @@
         <div class="share-guide__content">
           <img
             class="share-guide__arrow"
-            src="/assets/share-guide-arrow.svg"
+            src="/assets/share-guide-arrow.png"
             alt=""
             aria-hidden="true"
           />
@@ -164,8 +163,6 @@ import { configureWeChatShare, isWeChatBrowser } from '../utils/wechat';
 const route = useRoute();
 const router = useRouter();
 const resultRoot = ref(null);
-const posterCapture = ref(null);
-const posterCard = ref(null);
 const posterSnapshot = ref('');
 const isPosterRendering = ref(false);
 const shareGuideVisible = ref(false);
@@ -237,7 +234,7 @@ const goBack = () => {
 };
 
 const waitForPosterAssets = async () => {
-  const images = Array.from(posterCard.value?.querySelectorAll('img') ?? []);
+  const images = Array.from(resultRoot.value?.querySelectorAll('img') ?? []);
   const posterFontText = [result.title, result.lead, result.tag, result.trait, result.description].join('');
   const imagePromises = images.map((image) => {
     if (image.complete) return Promise.resolve();
@@ -257,10 +254,10 @@ const waitForPosterAssets = async () => {
 
 const generatePoster = async () => {
   if (posterSnapshot.value) {
-    actionStatus.value = '请长按上方海报图片保存';
+    actionStatus.value = '请长按页面图片保存';
     return;
   }
-  if (!posterCapture.value || !posterCard.value || isPosterRendering.value) return;
+  if (!resultRoot.value || isPosterRendering.value) return;
 
   isPosterRendering.value = true;
   actionStatus.value = '正在生成基因海报';
@@ -272,7 +269,7 @@ const generatePoster = async () => {
       waitForPosterAssets()
     ]);
 
-    const captureEl = posterCapture.value;
+    const captureEl = resultRoot.value;
     const captureWidth = captureEl.offsetWidth;
     const captureHeight = captureEl.offsetHeight;
     const currentFontSize = window.getComputedStyle(document.documentElement).fontSize;
@@ -300,12 +297,18 @@ const generatePoster = async () => {
         if (clonedNode?.ownerDocument?.documentElement) {
           clonedNode.ownerDocument.documentElement.style.fontSize = currentFontSize;
         }
+
+        const clonedPosterButton = clonedNode?.querySelector?.('.result-button--light');
+        if (clonedPosterButton) {
+          clonedPosterButton.removeAttribute('disabled');
+          clonedPosterButton.textContent = '生成我的基因海报';
+        }
       }
     });
 
     if (!resultRoot.value) return;
     posterSnapshot.value = dataUrl;
-    actionStatus.value = '基因海报已生成，请长按图片保存';
+    actionStatus.value = '整页基因海报已生成，请长按页面图片保存';
   } catch {
     actionStatus.value = '海报生成失败，请点击按钮重试';
   } finally {
@@ -652,7 +655,7 @@ onUnmounted(() => {
   text-size-adjust: 100%;
 }
 
-.result-card-capture {
+.result-card-canvas {
   position: absolute;
   top: 0;
   left: 0;
@@ -666,16 +669,15 @@ onUnmounted(() => {
   pointer-events: none !important;
 }
 
-.result-card-snapshot {
+.result-page-snapshot {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   z-index: 4;
   display: block;
-  width: 370px;
-  height: 553px;
-  box-shadow: 0 4px 4px rgb(0 0 0 / 5%);
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: fill;
   -webkit-touch-callout: default;
   user-select: auto;
 }
@@ -770,7 +772,7 @@ onUnmounted(() => {
 .result-card__lead {
   top: 125px;
   left: 18px;
-  width: 132px;
+  /* width: 132px; */
   margin: 0;
   font-size: 16px;
   font-weight: 500;
@@ -779,7 +781,7 @@ onUnmounted(() => {
 }
 
 .result-card__tag {
-  top: 169px;
+  top: 154px;
   left: 18px;
   max-width: 132px;
   margin: 0;
@@ -793,7 +795,7 @@ onUnmounted(() => {
 }
 
 .result-card__tag-line {
-  top: 202px;
+  top: 190px;
   left: 18px;
   width: 63px;
   height: 4px;
@@ -801,12 +803,12 @@ onUnmounted(() => {
 }
 
 .result-card__traits {
-  top: 226px;
+  top: 210px;
   left: 18px;
-  width: 132px;
+  /* width: 132px; */
   font-family: 'Resource Han Rounded CN', 'Noto Sans SC', 'PingFang SC', sans-serif;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 22px;
   text-wrap: balance;
 }

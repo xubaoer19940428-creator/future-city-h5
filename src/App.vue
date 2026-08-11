@@ -131,7 +131,7 @@ onMounted(() => {
 .global-audio-control {
   position: absolute;
   top: 14px;
-  right: 48px;
+  right: 12px;
   z-index: 100;
   display: grid;
   width: 24px;

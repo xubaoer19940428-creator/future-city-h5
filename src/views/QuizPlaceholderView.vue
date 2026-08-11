@@ -11,9 +11,9 @@
         <img src="/assets/nav-back.svg" alt="" />
       </button>
       <span class="top-nav__title">我的未来科学城</span>
-      <div class="top-nav__actions">
+      <!-- <div class="top-nav__actions">
         <img src="/assets/nav-share.svg" alt="" aria-hidden="true" />
-      </div>
+      </div> -->
     </nav>
 
     <div class="quiz-track" :class="{ 'quiz-track--form': currentStep === 1 }">
