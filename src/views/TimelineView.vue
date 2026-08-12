@@ -23,11 +23,22 @@
 						<p>{{ item.subtitle }}</p>
 					</header>
 
-					<section class="timeline-events" tabindex="0" :aria-label="`${item.year}年重要事件`" @scroll.passive="onEventsScroll">
+					<section
+						class="timeline-events"
+						tabindex="0"
+						:aria-label="`${item.year}年重要事件`"
+						@scroll.passive="onEventsScroll"
+						@pointerdown="stopAutoScroll"
+						@touchstart.passive="stopAutoScroll"
+						@wheel.passive="stopAutoScroll"
+						@keydown="stopAutoScroll"
+					>
 						<div class="timeline-track">
 							<span class="timeline-line" aria-hidden="true"></span>
+							<span class="timeline-line-head" aria-hidden="true"></span>
 							<article v-for="event in item.events" :key="event.label" class="event-group">
 								<span class="event-dot" aria-hidden="true"></span>
+								<span class="event-dot-pulse" aria-hidden="true"></span>
 								<div class="event-content">
 									<h2>{{ event.label }}</h2>
 									<div class="event-card">
@@ -90,6 +101,13 @@ let preparedReveal = null
 let revealedEvents = new WeakSet()
 let scrollRevealFrame = 0
 let lineProgress = 0
+let autoScrollFrame = 0
+let autoScrollDelayTimer = 0
+let autoScrollPanel = null
+let autoScrollTrack = null
+let autoScrollPosition = 0
+let autoScrollLastTime = 0
+let autoScrollCancelled = false
 
 const requestedYear = Number(route.query.year)
 const initialIndex = computed(() => {
@@ -99,6 +117,73 @@ const initialIndex = computed(() => {
 
 const currentYear = computed(() => FIRST_TIMELINE_YEAR + currentIndex.value)
 
+const cancelAutoScroll = (cancelForCurrentYear = false) => {
+	if (autoScrollDelayTimer) window.clearTimeout(autoScrollDelayTimer)
+	if (autoScrollFrame) cancelAnimationFrame(autoScrollFrame)
+	if (autoScrollPanel && autoScrollTrack) {
+		const maxScroll = Math.max(autoScrollPanel.scrollHeight - autoScrollPanel.clientHeight, 0)
+		autoScrollPanel.scrollTop = Math.min(autoScrollPosition, maxScroll)
+		gsap.set(autoScrollTrack, { clearProps: 'transform' })
+	}
+	if (autoScrollPanel) {
+		const lineHead = autoScrollPanel.querySelector('.timeline-line-head')
+		if (lineHead) gsap.set(lineHead, { clearProps: 'opacity,visibility,transform' })
+	}
+	autoScrollDelayTimer = 0
+	autoScrollFrame = 0
+	autoScrollPanel = null
+	autoScrollTrack = null
+	autoScrollLastTime = 0
+	if (cancelForCurrentYear) autoScrollCancelled = true
+}
+
+const stopAutoScroll = () => {
+	cancelAutoScroll(true)
+}
+
+const runAutoScroll = (time) => {
+	const eventsPanel = autoScrollPanel
+	const track = autoScrollTrack
+	if (!eventsPanel || !track || autoScrollCancelled || !timelineRoot.value?.contains(eventsPanel)) {
+		cancelAutoScroll()
+		return
+	}
+
+	const maxScroll = Math.max(eventsPanel.scrollHeight - eventsPanel.clientHeight, 0)
+	if (maxScroll <= 0 || autoScrollPosition >= maxScroll - 0.5) {
+		autoScrollPosition = maxScroll
+		cancelAutoScroll()
+		return
+	}
+
+	if (!autoScrollLastTime) autoScrollLastTime = time
+	const elapsedSeconds = Math.min((time - autoScrollLastTime) / 1000, 0.1)
+	autoScrollLastTime = time
+	autoScrollPosition = Math.min(autoScrollPosition + elapsedSeconds * 14, maxScroll)
+	gsap.set(track, { y: -autoScrollPosition, force3D: true })
+	revealScrolledEvents(eventsPanel)
+	autoScrollFrame = requestAnimationFrame(runAutoScroll)
+}
+
+const scheduleAutoScroll = (eventsPanel) => {
+	if (reduceMotionQuery?.matches || autoScrollCancelled) return
+	const maxScroll = Math.max(eventsPanel.scrollHeight - eventsPanel.clientHeight, 0)
+	if (maxScroll <= 0) return
+	const track = eventsPanel.querySelector('.timeline-track')
+	if (!track) return
+
+	cancelAutoScroll()
+	autoScrollPanel = eventsPanel
+	autoScrollTrack = track
+	autoScrollPosition = eventsPanel.scrollTop
+	eventsPanel.scrollTop = 0
+	gsap.set(track, { y: -autoScrollPosition, force3D: true })
+	autoScrollDelayTimer = window.setTimeout(() => {
+		autoScrollDelayTimer = 0
+		autoScrollFrame = requestAnimationFrame(runAutoScroll)
+	}, 600)
+}
+
 const resetActiveEventsScroll = async () => {
 	await nextTick()
 	const activeEvents = timelineRoot.value?.querySelector('.swiper-slide-active .timeline-events')
@@ -107,6 +192,7 @@ const resetActiveEventsScroll = async () => {
 
 const clearActiveReveal = () => {
 	revealRequest += 1
+	cancelAutoScroll()
 	if (scrollRevealFrame) cancelAnimationFrame(scrollRevealFrame)
 	scrollRevealFrame = 0
 	revealContext?.revert()
@@ -114,6 +200,7 @@ const clearActiveReveal = () => {
 	preparedReveal = null
 	revealedEvents = new WeakSet()
 	lineProgress = 0
+	autoScrollCancelled = false
 }
 
 const getActiveRevealTargets = () => {
@@ -121,7 +208,8 @@ const getActiveRevealTargets = () => {
 	const eventsPanel = activeSlide?.querySelector('.timeline-events')
 	const track = activeSlide?.querySelector('.timeline-track')
 	const line = activeSlide?.querySelector('.timeline-line')
-	if (!activeSlide || !eventsPanel || !track || !line) return null
+	const lineHead = activeSlide?.querySelector('.timeline-line-head')
+	if (!activeSlide || !eventsPanel || !track || !line || !lineHead) return null
 
 	const panelRect = eventsPanel.getBoundingClientRect()
 	const allEvents = Array.from(activeSlide.querySelectorAll('.event-group'))
@@ -130,44 +218,109 @@ const getActiveRevealTargets = () => {
 		return eventRect.top < panelRect.bottom && eventRect.bottom > panelRect.top
 	})
 
-	return { eventsPanel, track, line, allEvents, visibleEvents }
+	return { eventsPanel, track, line, lineHead, allEvents, visibleEvents }
 }
 
-const createRevealTimeline = ({ eventsPanel, track, line, visibleEvents }) => {
+const getEventRevealParts = (event) => {
+	const dot = event.querySelector('.event-dot')
+	const pulse = event.querySelector('.event-dot-pulse')
+	const date = event.querySelector('h2')
+	const card = event.querySelector('.event-card')
+	const items = Array.from(event.querySelectorAll('.event-card__item'))
+	const images = Array.from(event.querySelectorAll('.event-card__item img'))
+	if (!dot || !pulse || !date || !card) return null
+	return { dot, pulse, date, card, items, images }
+}
+
+const setEventRevealState = (event) => {
+	const parts = getEventRevealParts(event)
+	if (!parts) return
+
+	gsap.set(parts.dot, { autoAlpha: 0, scale: 0.55 })
+	gsap.set(parts.pulse, { autoAlpha: 0, scale: 0.55 })
+	gsap.set(parts.date, { autoAlpha: 0, x: -16 })
+	gsap.set(parts.card, { autoAlpha: 0, x: 18, y: 8, scale: 0.985 })
+	gsap.set(parts.items, { autoAlpha: 0, y: 10 })
+	gsap.set(parts.images, { y: 8, scale: 0.97 })
+}
+
+const addEventReveal = (timeline, event, position) => {
+	const parts = getEventRevealParts(event)
+	if (!parts) return
+
+	timeline
+		.fromTo(
+			parts.dot,
+			{ autoAlpha: 0, scale: 0.55 },
+			{ autoAlpha: 1, scale: 1, duration: 0.34, ease: 'back.out(1.8)', clearProps: 'opacity,visibility,transform' },
+			position,
+		)
+		.fromTo(
+			parts.pulse,
+			{ autoAlpha: 0.7, scale: 0.55 },
+			{ autoAlpha: 0, scale: 2.35, duration: 0.58, ease: 'power2.out', clearProps: 'opacity,visibility,transform' },
+			position + 0.03,
+		)
+		.fromTo(
+			parts.date,
+			{ autoAlpha: 0, x: -16 },
+			{ autoAlpha: 1, x: 0, duration: 0.4, clearProps: 'opacity,visibility,transform' },
+			position + 0.06,
+		)
+		.fromTo(
+			parts.card,
+			{ autoAlpha: 0, x: 18, y: 8, scale: 0.985 },
+			{ autoAlpha: 1, x: 0, y: 0, scale: 1, duration: 0.58, clearProps: 'opacity,visibility,transform' },
+			position + 0.14,
+		)
+
+	if (parts.items.length) {
+		timeline.fromTo(
+			parts.items,
+			{ autoAlpha: 0, y: 10 },
+			{ autoAlpha: 1, y: 0, duration: 0.44, stagger: 0.1, clearProps: 'opacity,visibility,transform' },
+			position + 0.24,
+		)
+	}
+
+	if (parts.images.length) {
+		timeline.fromTo(
+			parts.images,
+			{ y: 8, scale: 0.97 },
+			{ y: 0, scale: 1, duration: 0.52, stagger: 0.1, clearProps: 'transform' },
+			position + 0.34,
+		)
+	}
+}
+
+const createRevealTimeline = ({ eventsPanel, track, line, lineHead, visibleEvents }) => {
 	const lineDuration = 1.1
 	const trackRect = track.getBoundingClientRect()
 	const panelHeight = Math.max(eventsPanel.clientHeight, 1)
 	const lineHeight = Math.max(line.offsetHeight, 1)
 	const visibleLineProgress = Math.min(panelHeight / lineHeight, 1)
 	lineProgress = Math.max(lineProgress, visibleLineProgress)
+	const lineHeadY = Math.max(lineProgress * lineHeight - 3, 0)
 	const revealTimeline = gsap.timeline({
 		defaults: { ease: 'power3.out', overwrite: 'auto' },
+		onComplete: () => {
+			gsap.set(line, { scaleY: 1 })
+			scheduleAutoScroll(eventsPanel)
+		},
 	})
 
 	revealTimeline.to(line, { scaleY: lineProgress, duration: lineDuration, ease: 'power2.inOut' }, 0)
+	revealTimeline.fromTo(lineHead, { autoAlpha: 0, y: 0 }, { autoAlpha: 1, y: lineHeadY, duration: lineDuration, ease: 'power2.inOut' }, 0)
+	revealTimeline.to(lineHead, { autoAlpha: 0, duration: 0.18, clearProps: 'opacity,visibility,transform' }, lineDuration - 0.02)
 
 	visibleEvents.forEach((event) => {
-		const dot = event.querySelector('.event-dot')
-		const content = event.querySelector('.event-content')
-		if (!dot || !content) return
 		revealedEvents.add(event)
 
-		const dotRect = dot.getBoundingClientRect()
+		const dotRect = event.querySelector('.event-dot')?.getBoundingClientRect()
+		if (!dotRect) return
 		const dotPosition = Math.min(Math.max(dotRect.top + dotRect.height / 2 - trackRect.top, 0), panelHeight)
 		const revealAt = (dotPosition / panelHeight) * lineDuration
-
-		revealTimeline.fromTo(
-			dot,
-			{ autoAlpha: 0, scale: 0.65 },
-			{ autoAlpha: 1, scale: 1, duration: 0.28, clearProps: 'opacity,visibility,transform' },
-			revealAt,
-		)
-		revealTimeline.fromTo(
-			content,
-			{ autoAlpha: 0, y: 10 },
-			{ autoAlpha: 1, y: 0, duration: 0.5, clearProps: 'opacity,visibility,transform' },
-			revealAt + 0.06,
-		)
+		addEventReveal(revealTimeline, event, revealAt)
 	})
 }
 
@@ -176,14 +329,6 @@ const revealScrolledEvents = (eventsPanel) => {
 	const activeSlide = timelineRoot.value.querySelector('.swiper-slide-active')
 	if (!activeSlide || !activeSlide.contains(eventsPanel)) return
 
-	const track = eventsPanel.querySelector('.timeline-track')
-	const line = eventsPanel.querySelector('.timeline-line')
-	if (!track || !line) return
-
-	const lineHeight = Math.max(line.offsetHeight, 1)
-	const nextLineProgress = Math.min(Math.max((eventsPanel.scrollTop + eventsPanel.clientHeight - 8) / lineHeight, 0), 1)
-	lineProgress = Math.max(lineProgress, nextLineProgress)
-
 	const panelRect = eventsPanel.getBoundingClientRect()
 	const enteringEvents = []
 	activeSlide.querySelectorAll('.event-group').forEach((event) => {
@@ -191,7 +336,7 @@ const revealScrolledEvents = (eventsPanel) => {
 		const eventRect = event.getBoundingClientRect()
 		if (eventRect.bottom <= panelRect.top) {
 			revealedEvents.add(event)
-			gsap.set([event.querySelector('.event-dot'), event.querySelector('.event-content')], {
+			gsap.set(event.querySelectorAll('.event-dot, .event-dot-pulse, h2, .event-card, .event-card__item, .event-card__item img'), {
 				clearProps: 'opacity,visibility,transform',
 			})
 			return
@@ -202,24 +347,12 @@ const revealScrolledEvents = (eventsPanel) => {
 		}
 	})
 
-	revealContext.add(() => {
-		gsap.to(line, { scaleY: lineProgress, duration: 0.35, ease: 'power2.out', overwrite: 'auto' })
-		enteringEvents.forEach((event, index) => {
-			const dot = event.querySelector('.event-dot')
-			const content = event.querySelector('.event-content')
-			if (!dot || !content) return
+	if (!enteringEvents.length) return
 
-			const delay = index * 0.08
-			gsap.fromTo(
-				dot,
-				{ autoAlpha: 0, scale: 0.65 },
-				{ autoAlpha: 1, scale: 1, duration: 0.28, delay, ease: 'power3.out', clearProps: 'opacity,visibility,transform' },
-			)
-			gsap.fromTo(
-				content,
-				{ autoAlpha: 0, y: 10 },
-				{ autoAlpha: 1, y: 0, duration: 0.5, delay: delay + 0.06, ease: 'power3.out', clearProps: 'opacity,visibility,transform' },
-			)
+	revealContext.add(() => {
+		const scrollTimeline = gsap.timeline({ defaults: { overwrite: 'auto' } })
+		enteringEvents.forEach((event, index) => {
+			addEventReveal(scrollTimeline, event, index * 0.1)
 		})
 	})
 }
@@ -246,9 +379,9 @@ const prepareActiveSlideReveal = async () => {
 
 	revealContext = gsap.context(() => {
 		gsap.set(preparedReveal.line, { scaleY: 0, transformOrigin: 'top center' })
+		gsap.set(preparedReveal.lineHead, { autoAlpha: 0, y: 0 })
 		preparedReveal.allEvents.forEach((event) => {
-			gsap.set(event.querySelector('.event-dot'), { autoAlpha: 0, scale: 0.65 })
-			gsap.set(event.querySelector('.event-content'), { autoAlpha: 0, y: 10 })
+			setEventRevealState(event)
 		})
 	}, timelineRoot.value)
 }
@@ -272,9 +405,9 @@ const revealActiveSlide = async () => {
 	} else {
 		revealContext = gsap.context(() => {
 			gsap.set(targets.line, { scaleY: 0, transformOrigin: 'top center' })
+			gsap.set(targets.lineHead, { autoAlpha: 0, y: 0 })
 			targets.allEvents.forEach((event) => {
-				gsap.set(event.querySelector('.event-dot'), { autoAlpha: 0, scale: 0.65 })
-				gsap.set(event.querySelector('.event-content'), { autoAlpha: 0, y: 10 })
+				setEventRevealState(event)
 			})
 			createRevealTimeline(targets)
 		}, timelineRoot.value)
@@ -503,6 +636,21 @@ onUnmounted(() => {
 	transform-origin: top center;
 }
 
+.timeline-line-head {
+	position: absolute;
+	top: 8px;
+	left: 24px;
+	z-index: 1;
+	display: block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 0 10px 3px rgb(255 255 255 / 72%);
+	opacity: 0;
+	pointer-events: none;
+}
+
 .event-group {
 	position: relative;
 	z-index: 2;
@@ -523,6 +671,20 @@ onUnmounted(() => {
 	border: 1px solid #fff;
 	border-radius: 50%;
 	background: #14A4FF;
+}
+
+.event-dot-pulse {
+	position: absolute;
+	top: 5px;
+	left: -37px;
+	z-index: 1;
+	display: block;
+	width: 16px;
+	height: 16px;
+	border: 1px solid rgb(255 255 255 / 84%);
+	border-radius: 50%;
+	opacity: 0;
+	pointer-events: none;
 }
 
 .event-dot::after {
@@ -599,7 +761,7 @@ onUnmounted(() => {
 	height: 44px;
 	padding: 0;
 	border: 1px solid rgb(255 255 255 / 78%);
-	border-radius: 0 18px 18px 0;
+	border-radius: 0 30px 30px 0;
 	background: rgb(255 255 255 / 96%);
 	box-shadow: 0 4px 10px rgb(0 82 138 / 12%);
 	color: #333;
@@ -612,7 +774,7 @@ onUnmounted(() => {
 
 .year-nav .year-nav__next {
     border-right: none;
-	border-radius: 18px 0 0 18px;
+	border-radius: 30px 0 0 30px;
 	background: linear-gradient(180deg, #1f9ff8, #44b9ff);
 	color: #fff;
 }
