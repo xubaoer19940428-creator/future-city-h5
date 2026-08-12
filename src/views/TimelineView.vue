@@ -505,7 +505,7 @@ onUnmounted(() => {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	padding: calc(76px + env(safe-area-inset-top)) 0 calc(92px + env(safe-area-inset-bottom));
+	padding: calc(64px + env(safe-area-inset-top)) 0 calc(92px + env(safe-area-inset-bottom));
 	overflow: hidden;
 }
 
