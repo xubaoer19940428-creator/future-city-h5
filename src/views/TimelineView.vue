@@ -159,7 +159,7 @@ const runAutoScroll = (time) => {
 	if (!autoScrollLastTime) autoScrollLastTime = time
 	const elapsedSeconds = Math.min((time - autoScrollLastTime) / 1000, 0.1)
 	autoScrollLastTime = time
-	autoScrollPosition = Math.min(autoScrollPosition + elapsedSeconds * 14, maxScroll)
+	autoScrollPosition = Math.min(autoScrollPosition + elapsedSeconds * 30, maxScroll)
 	gsap.set(track, { y: -autoScrollPosition, force3D: true })
 	revealScrolledEvents(eventsPanel)
 	autoScrollFrame = requestAnimationFrame(runAutoScroll)
