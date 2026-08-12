@@ -219,8 +219,8 @@ const generatePoster = async () => {
 				filter: 'none',
 				backdropFilter: 'none',
 				webkitBackdropFilter: 'none',
-				webkitTextSizeAdjust: '100%',
-				textSizeAdjust: '100%',
+				webkitTextSizeAdjust: 'none',
+				textSizeAdjust: 'none',
 			},
 			onCloneNode: (clonedNode) => {
 				if (clonedNode?.ownerDocument?.documentElement) {
@@ -563,8 +563,8 @@ onUnmounted(() => {
 	transform-style: preserve-3d;
 	will-change: transform, opacity;
 	box-sizing: border-box;
-	-webkit-text-size-adjust: 100%;
-	text-size-adjust: 100%;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
 }
 
 .result-card-canvas {

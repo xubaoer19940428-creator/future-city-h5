@@ -20,8 +20,8 @@
 
   html {
     font-size: 4.102564vw;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
   }
 
   html, body {

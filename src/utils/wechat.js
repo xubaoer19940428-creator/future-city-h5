@@ -50,6 +50,36 @@ const requestToolbarHide = () => {
   });
 };
 
+const lockWeChatFontSize = () => {
+  const bridge = window.WeixinJSBridge;
+  if (!bridge || typeof bridge.invoke !== 'function') return;
+
+  bridge.invoke('setFontSizeCallback', { fontSize: 0 });
+};
+
+const installWeChatFontSizeListener = () => {
+  const bridge = window.WeixinJSBridge;
+  if (!bridge || typeof bridge.on !== 'function') return;
+
+  lockWeChatFontSize();
+  bridge.on('menu:setfont', lockWeChatFontSize);
+};
+
+export const installWeChatFontSizeGuard = () => {
+  if (!isWeChatBrowser()) return;
+
+  if (window.WeixinJSBridge) {
+    installWeChatFontSizeListener();
+  } else {
+    document.addEventListener('WeixinJSBridgeReady', installWeChatFontSizeListener, { once: true });
+  }
+
+  window.addEventListener('pageshow', lockWeChatFontSize, { passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) lockWeChatFontSize();
+  });
+};
+
 export const installWeChatToolbarGuard = (router) => {
   if (!isWeChatBrowser()) return;
 

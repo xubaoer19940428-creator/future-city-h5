@@ -1,7 +1,11 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router, { prepareInitialRoute } from './router';
-import { installWeChatShareGuard, installWeChatToolbarGuard } from './utils/wechat';
+import {
+  installWeChatFontSizeGuard,
+  installWeChatShareGuard,
+  installWeChatToolbarGuard
+} from './utils/wechat';
 import './styles/main.css';
 
 const DESIGN_WIDTH = 390;
@@ -34,6 +38,7 @@ window.addEventListener('orientationchange', scheduleRootRemUpdate, { passive: t
 window.visualViewport?.addEventListener('resize', scheduleRootRemUpdate, { passive: true });
 
 installWeChatToolbarGuard(router);
+installWeChatFontSizeGuard();
 installWeChatShareGuard(router);
 
 const mountApp = async () => {
