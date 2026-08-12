@@ -491,7 +491,7 @@ onUnmounted(() => {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	background: #42aff6 url('/assets/34346.png') center / 100% 100% no-repeat;
+	background: #42aff6 url('/assets/34346.jpg') center / 100% 100% no-repeat;
 	color: #fff;
 }
 
