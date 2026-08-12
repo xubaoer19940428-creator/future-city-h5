@@ -445,8 +445,6 @@ onUnmounted(() => {
 
 <style scoped>
 .result-view {
-	--result-scale: 1;
-	--result-stage-height: 553px;
 	position: relative;
 	width: 100%;
 	height: 100%;
@@ -486,9 +484,9 @@ onUnmounted(() => {
 
 .result-stage {
 	position: relative;
-	flex: 0 0 var(--result-stage-height);
+	flex: 0 0 553px;
 	width: 100%;
-	height: var(--result-stage-height);
+	height: 553px;
 	background: transparent;
 	isolation: isolate;
 }
@@ -501,7 +499,7 @@ onUnmounted(() => {
 	width: 370px;
 	height: 553px;
 	margin-left: 10px;
-	transform: translateX(-50%) scale(var(--result-scale));
+	transform: translateX(-50%);
 	transform-origin: top center;
 }
 
@@ -975,11 +973,6 @@ onUnmounted(() => {
 }
 
 @media (max-height: 800px) {
-	.result-view {
-		--result-scale: 0.9;
-		--result-stage-height: 498px;
-	}
-
 	.result-controls {
 		margin-top: 18px;
 	}
@@ -990,11 +983,6 @@ onUnmounted(() => {
 }
 
 @media (max-height: 700px) {
-	.result-view {
-		--result-scale: 0.82;
-		--result-stage-height: 454px;
-	}
-
 	.result-controls {
 		margin-top: 12px;
 	}
