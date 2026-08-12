@@ -578,11 +578,12 @@ onUnmounted(() => {
 
 .year-heading__title img {
 	position: absolute;
-	right: -4px;
+	left: 50%;
 	bottom: -2px;
-	z-index: 0;
-	width: 45px;
-	height: 14px;
+	z-index: 10;
+	width: 70px;
+	height: 21px;
+	transform: translateX(-50%);
 }
 
 .year-heading__title span {
