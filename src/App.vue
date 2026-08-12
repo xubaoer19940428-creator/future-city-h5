@@ -2,7 +2,10 @@
   <div class="w-full h-full min-h-dvh flex justify-center items-center bg-[#4cb5f7]">
     <div class="app-shell w-full h-full relative overflow-hidden bg-[#4cb5f7] flex flex-col">
       <router-view v-slot="{ Component, route }">
-        <Transition name="deck" appear>
+        <div v-if="isWeChat" :key="route.fullPath" class="route-stage">
+          <component :is="Component" />
+        </div>
+        <Transition v-else name="deck" appear>
           <div :key="route.fullPath" class="route-stage">
             <component :is="Component" />
           </div>
@@ -36,9 +39,11 @@
 
 <script setup>
 import { onMounted, provide, ref } from 'vue';
+import { isWeChatBrowser } from './utils/wechat';
 
 const backgroundAudio = ref(null);
 const isAudioPlaying = ref(false);
+const isWeChat = isWeChatBrowser();
 let playAttempt = 0;
 let userPaused = false;
 

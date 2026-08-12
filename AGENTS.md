@@ -104,6 +104,24 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 - `pnpm build`, `git diff --check`, and the full runtime-source font cmap validation passed after switching Result to full-page capture and regenerating the font subset. The only build output was the existing VConsole dependency warning about `eval`.
 - Real browser screenshot tooling was unavailable for the final device comparison. In the next thread, first hard-refresh the affected iOS/Android device, wait for automatic poster generation (or tap retry), and compare the entire Result viewport with the generated image before changing card typography or character position.
 
+## Result cross-device scale checkpoint (2026-08-12)
+
+- Android and iOS full-page posters previously showed different card proportions because the 2× Android image (`800 × 1540`, corresponding to a `400 × 770` CSS viewport) triggered the old `max-height: 800px` card scale of `0.9`, while the 2× iOS image (`880 × 1712`, corresponding to `440 × 856`) stayed at scale `1`.
+- The height-dependent `--result-scale: 0.9 / 0.82` and shortened `--result-stage-height` rules were removed. The live Result card and generated page snapshot now always use the same unscaled 350 × 553px card / 370 × 553px stage geometry across device heights, so the snapshot overlay must not jump larger after generation.
+- Short screens must use the existing vertical scrolling in `.result-content` to reach the action controls. Do not reintroduce height-based card scaling to make every control fit in one viewport; that would make Android and iOS poster geometry diverge again.
+
+## Timeline WeChat stability checkpoint (2026-08-12)
+
+- A Timeline animation experiment caused a WeChat-only regression: tapping `开启时光之旅` returned to Home, and later speculative route/session restoration attempts produced an infinite reload loop. Normal browsers did not reproduce it. Those route/session persistence experiments were incorrect and have been fully removed; do not restore them.
+- The stable WeChat baseline currently has no Timeline entrance/reveal animation. Swiper remains a normal 1050ms horizontal slide. ScrollTrigger, Swiper Creative/flip-book effects, animated timeline progress, revealed-dot state, and their animation-only CSS have been removed.
+- The issue stopped after the WeChat route transition and Timeline first-frame load were simplified. In `App.vue`, WeChat renders the active route directly instead of running the full-screen `deck` 3D transition; non-WeChat browsers retain the existing `deck` transition. Do not run the full-screen route 3D transition and Timeline's Swiper/GPU animation concurrently in WeChat.
+- Timeline event images are mounted only for the active year (`itemIndex === currentIndex`), preventing all 18 years of images from being decoded/rendered on the first Timeline frame. The opaque white `.event-card` no longer uses the visually redundant `backdrop-filter` layer.
+- `src/data/timelineContent.js` must not use `Array.prototype.at()`, because older WeChat/X5 WebViews may not support it. Keep the compatible length-based array indexing unless the build adds an explicit legacy polyfill.
+- Preserve the current Timeline UI and data work: parsed 2009–2026 content from `1.txt`, same-month grouping, the separate `2019年6月-2020年9月` entry, responsive/safe-area layout, manual vertical scrolling, current user-tuned card/date/dot styles, and the width-fluid (`width: 100%; height: auto`) placeholder image.
+- If animation is revisited, use a low-risk active-slide reveal only: after Swiper's `slideChangeTransitionEnd`, animate the active year heading and event cards with opacity plus small `translateY` values. Keep it scoped with `gsap.context`, kill/clear it on slide change and unmount, animate only transform/opacity, and honor `prefers-reduced-motion`. Do not animate the scroll container, timeline line height, filters, layout properties, or every off-screen year.
+- A suitable next animation sequence is: heading `opacity 0 → 1` and `y: 12 → 0` for about 500–650ms, followed by visible event groups with a restrained 100–160ms stagger and 450–600ms duration. Trigger only the cards initially visible in the active scroll panel; later cards should simply appear through manual scrolling rather than using ScrollTrigger. Keep direct navigation/button feedback fast.
+- Validate any reintroduced Timeline animation in WeChat through the complete flow (`Home → Quiz → Timeline`), not only by opening Timeline directly. First confirm repeated Quiz-to-Timeline entries do not return Home or reload, then test year swipes and manual vertical scrolling. Run `pnpm build` after each animation change.
+
 ## Current file-by-file checkpoint (2026-08-11)
 
 - `AGENTS.md`: project memory, responsive/layout constraints, implementation checkpoint, deployment requirements, and resume protocol.
