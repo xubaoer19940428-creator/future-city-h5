@@ -102,7 +102,7 @@ export const timelineContent = [
 		year: 2020,
 		title: '跃升',
 		subtitle: '“两区”加持，能级提升。',
-		events: [createEvent('4月', ['未来科学城集团独立获取中关村生命科学园研究型国际医疗产业转化平台项目（高博医院）。']), createEvent('9月', [createEventItem('北京十一未来城学校（小学）正式开学', '/assets/timeline/2020-09.webp'), createEventItem('昌平实验室成功挂牌，生命科学园及周边10.26平方公里纳入北京自由贸易试验区科技创新片区，未来科学城升级为北京国际科技创新中心主平台之一。', '/assets/timeline/2020-09-2.webp')])],
+		events: [createEvent('4月', ['未来科学城集团独立获取中关村生命科学园研究型国际医疗产业转化平台项目（高博医院）。']), createEvent('9月', [createEventItem('北京十一未来城学校（小学）正式开学。', '/assets/timeline/2020-09.webp'), createEventItem('昌平实验室成功挂牌，生命科学园及周边10.26平方公里纳入北京自由贸易试验区科技创新片区，未来科学城升级为北京国际科技创新中心主平台之一。', '/assets/timeline/2020-09-2.webp')])],
 	},
 	{
 		year: 2021,
@@ -161,13 +161,13 @@ export const timelineContent = [
 		year: 2026,
 		title: '此刻',
 		subtitle: '你在这里，我们一起向前。',
-			events: [
-				createEvent('3月', ['未来科学城能源谷首座“第四代好房子”——未来城·星寰时代正式亮相并开放样板间。'], '/assets/timeline/2026-03.webp'),
-				createEvent('5月', ['昌平千帆音乐公园顺利首秀，服务千帆音乐季·2026微博大眼音乐节。'], '/assets/timeline/2026-05.webp'),
-				createEvent('7月', [createEventItem('未来科学城集团自建自营的产业标杆项目——北京市机器人产业园（昌平）正式开园。', '/assets/timeline/2026-07.webp'), createEventItem('全国高校合成生物区域技术转移转化中心（北京）正式获教育部批复建设。', '/assets/timeline/2026-07-2.webp'), createEventItem('未来溪谷滨河商业休闲街正式对外开放。', '/assets/timeline/2026-07-3.webp')]),
-				createEvent('7月28日', ['未来科学城17周岁。']),
-				createEvent('8月21日', ['未来科学城集团17周岁。']),
-			],
-			conclusion: '十七年，是一座城的序章，故事还在继续——',
-		},
+		events: [
+			createEvent('3月', ['未来科学城能源谷首座“第四代好房子”——未来城·星寰时代正式亮相并开放样板间。'], '/assets/timeline/2026-03.webp'),
+			createEvent('5月', ['昌平千帆音乐公园顺利首秀，服务千帆音乐季·2026微博大眼音乐节。'], '/assets/timeline/2026-05.webp'),
+			createEvent('7月', [createEventItem('未来科学城集团自建自营的产业标杆项目——北京市机器人产业园（昌平）正式开园。', '/assets/timeline/2026-07.webp'), createEventItem('全国高校合成生物区域技术转移转化中心（北京）正式获教育部批复建设。', '/assets/timeline/2026-07-2-1.webp'), createEventItem('未来溪谷滨河商业休闲街正式对外开放。', '/assets/timeline/2026-07-3.webp')]),
+			createEvent('7月28日', ['未来科学城17周岁。']),
+			createEvent('8月21日', ['未来科学城集团17周岁。']),
+		],
+		conclusion: '十七年，是一座城的序章，\n故事还在继续——',
+	},
 ]

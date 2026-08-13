@@ -6,7 +6,7 @@
 			<button class="top-nav__back" type="button" aria-label="返回时光之旅" @click="goBack">
 				<img src="/assets/nav-back.svg" alt="" />
 			</button>
-			<span class="top-nav__title">我的未来科学城</span>
+			<span class="top-nav__title">未来科学城</span>
 			<!-- <button class="top-nav__share" type="button" aria-label="分享结果" @click="sharePoster">
         <img src="/assets/nav-share.svg" alt="" />
       </button> -->
@@ -45,7 +45,7 @@
 
 							<div class="result-card__footer">
 								<img class="result-card__qr" src="/assets/result-qr.png" alt="未来科学城二维码" />
-								<p>扫一扫解锁<br />你的基因图谱</p>
+								<p>扫一扫解锁<br />未来基因图谱</p>
 								<img class="result-card__brand" src="/assets/result-brand.png" alt="未来科学城集团" />
 							</div>
 						</article>

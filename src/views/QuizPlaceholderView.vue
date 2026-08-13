@@ -10,7 +10,7 @@
       <button class="top-nav__back" type="button" aria-label="返回" @click="goBack">
         <img src="/assets/nav-back.svg" alt="" />
       </button>
-      <span class="top-nav__title">我的未来科学城</span>
+      <span class="top-nav__title">未来科学城</span>
       <!-- <div class="top-nav__actions">
         <img src="/assets/nav-share.svg" alt="" aria-hidden="true" />
       </div> -->

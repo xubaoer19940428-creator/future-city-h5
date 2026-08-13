@@ -62,7 +62,7 @@
 			<button class="top-nav__back" type="button" aria-label="返回选择页" @click="goBack">
 				<img src="/assets/nav-back.svg" alt="" />
 			</button>
-			<span class="top-nav__title">我的未来科学城</span>
+			<span class="top-nav__title">{{ topNavTitle }}</span>
 			<!-- <img class="top-nav__share" src="/assets/nav-share.svg" alt="" aria-hidden="true" /> -->
 		</nav>
 
@@ -119,6 +119,7 @@ const initialIndex = computed(() => {
 })
 
 const currentYear = computed(() => FIRST_TIMELINE_YEAR + currentIndex.value)
+const topNavTitle = computed(() => (currentIndex.value % 2 === 0 ? '科创新都  未来之城' : '面向未来的科技创新服务商'))
 
 const cancelAutoScroll = (cancelForCurrentYear = false) => {
 	if (autoScrollDelayTimer) window.clearTimeout(autoScrollDelayTimer)
@@ -548,6 +549,7 @@ onUnmounted(() => {
 	font-weight: 400;
 	line-height: 18px;
 	opacity: 0.6;
+	white-space: pre;
 }
 
 .year-heading {
@@ -639,8 +641,9 @@ onUnmounted(() => {
 	font-size: 17px;
 	font-weight: 700;
 	line-height: 27px;
-	text-align: center;
+	text-align: left;
 	text-shadow: 0 1px 4px rgb(0 86 145 / 45%);
+	white-space: pre-line;
 }
 
 .timeline-line {
