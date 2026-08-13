@@ -37,7 +37,7 @@ export const timelineContent = [
 		year: 2011,
 		title: '扎根',
 		subtitle: '从规划图纸到土地，落地生根。',
-		events: [createEvent('7月', ['土沟村、鲁疃村、北七家村、岭上村共计2000余宗宅基地完成拆迁工作。']), createEvent('9月', ['公司首个招拍挂二级项目未来视界拿地成交。'], '/assets/timeline/2011-09.jpg')],
+		events: [createEvent('7月', ['土沟村、鲁疃村、北七家村、岭上村共计2000余宗宅基地完成拆迁工作。']), createEvent('9月', ['公司首个招拍挂二级项目未来视界拿地成交。'], '/assets/timeline/2011-09.webp')],
 	},
 	{
 		year: 2012,
@@ -125,7 +125,7 @@ export const timelineContent = [
 			createEvent('7月', [createEventItem('未来科学城集团联合中建智地摘地，推动未来科学城山姆会员商店8月正式启动。'), createEventItem('未来视界项目全面竣备。', '/assets/timeline/2023-07.webp')]),
 			createEvent('8月', ['未来逸园项目实现交付。'], '/assets/timeline/2023-08.webp'),
 			createEvent('9月', ['全国首家国际研究型医院高博医院投入运营。'], '/assets/timeline/2023-09.webp'),
-			createEvent('10月', ['未来科学城集团首家自持运营酒店——北京未来科学城万怡酒店正式开业。'], '/assets/timeline/2023-10.webp'),
+			createEvent('10月', ['未来科学城集团首家自持运营酒店——北京未来科学城万怡酒店正式开业。'], '/assets/timeline/2023-10-replace.webp'),
 			createEvent('12月', ['《未来科学城集团转型升级战略规划》确定。'], '/assets/timeline/2023-12.webp'),
 		],
 	},
