@@ -37,8 +37,8 @@
             <p>未来科学城从一纸蓝图生长为</p>
             <p>170.6平方公里的科创热土</p>
             <p>十七年时光</p>
-            <p>每一次变革</p>
-            <p>每一栋建筑</p>
+            <p>每一次生长</p>
+            <p>每一轮变革</p>
             <p>每一份突破</p>
             <p>都与你有关</p>
           </div>
@@ -120,7 +120,7 @@ import { gsap } from 'gsap';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import QuizSelect from '../components/QuizSelect.vue';
-import { RESULT_IDENTITIES } from '../data/resultProfiles';
+import { normalizeResultIdentity, RESULT_IDENTITIES } from '../data/resultProfiles';
 
 const route = useRoute();
 const router = useRouter();
@@ -131,7 +131,8 @@ const currentStep = ref(route.query.step === 'profile' ? 1 : 0);
 const touchStartX = ref(0);
 const touchStartY = ref(0);
 const queryIdentity = typeof route.query.identity === 'string' ? route.query.identity : '';
-const identity = ref(RESULT_IDENTITIES.includes(queryIdentity) ? queryIdentity : '');
+const normalizedQueryIdentity = queryIdentity ? normalizeResultIdentity(queryIdentity) : '';
+const identity = ref(RESULT_IDENTITIES.includes(normalizedQueryIdentity) ? normalizedQueryIdentity : '');
 const queryYear = Number(route.query.year);
 const year = ref(
   Number.isInteger(queryYear) && queryYear >= 2009 && queryYear <= 2026 ? queryYear : ''

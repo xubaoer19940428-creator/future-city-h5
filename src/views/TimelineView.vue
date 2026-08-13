@@ -33,22 +33,25 @@
 						@wheel.passive="stopAutoScroll"
 						@keydown="stopAutoScroll"
 					>
-						<div class="timeline-track">
-							<span class="timeline-line" aria-hidden="true"></span>
-							<span class="timeline-line-head" aria-hidden="true"></span>
-							<article v-for="event in item.events" :key="event.label" class="event-group">
-								<span class="event-dot" aria-hidden="true"></span>
-								<span class="event-dot-pulse" aria-hidden="true"></span>
-								<div class="event-content">
-									<h2>{{ event.label }}</h2>
-									<div class="event-card">
-										<div v-for="(content, contentIndex) in event.items" :key="`${event.label}-${contentIndex}`" class="event-card__item">
-											<p>{{ content.description }}</p>
-											<img v-if="itemIndex === currentIndex && content.image" :src="content.image" alt="" />
+						<div class="timeline-scroll-content">
+							<div class="timeline-track">
+								<span class="timeline-line" aria-hidden="true"></span>
+								<span class="timeline-line-head" aria-hidden="true"></span>
+								<article v-for="event in item.events" :key="event.label" class="event-group">
+									<span class="event-dot" aria-hidden="true"></span>
+									<span class="event-dot-pulse" aria-hidden="true"></span>
+									<div class="event-content">
+										<h2>{{ event.label }}</h2>
+										<div class="event-card">
+											<div v-for="(content, contentIndex) in event.items" :key="`${event.label}-${contentIndex}`" class="event-card__item">
+												<p>{{ content.description }}</p>
+												<img v-if="itemIndex === currentIndex && content.image" :src="content.image" alt="" />
+											</div>
 										</div>
 									</div>
-								</div>
-							</article>
+								</article>
+							</div>
+							<p v-if="item.conclusion" class="timeline-conclusion">{{ item.conclusion }}</p>
 						</div>
 					</section>
 				</article>
@@ -169,7 +172,7 @@ const scheduleAutoScroll = (eventsPanel) => {
 	if (reduceMotionQuery?.matches || autoScrollCancelled) return
 	const maxScroll = Math.max(eventsPanel.scrollHeight - eventsPanel.clientHeight, 0)
 	if (maxScroll <= 0) return
-	const track = eventsPanel.querySelector('.timeline-track')
+	const track = eventsPanel.querySelector('.timeline-scroll-content')
 	if (!track) return
 
 	cancelAutoScroll()
@@ -620,9 +623,24 @@ onUnmounted(() => {
 	outline-offset: -2px;
 }
 
+.timeline-scroll-content {
+	position: relative;
+}
+
 .timeline-track {
 	position: relative;
 	padding: 0 8px 0 57px;
+}
+
+.timeline-conclusion {
+	margin: 28px 20px 8px 57px;
+	color: #fff;
+	font-family: 'Resource Han Rounded CN', 'Noto Sans SC', 'PingFang SC', sans-serif;
+	font-size: 17px;
+	font-weight: 700;
+	line-height: 27px;
+	text-align: center;
+	text-shadow: 0 1px 4px rgb(0 86 145 / 45%);
 }
 
 .timeline-line {
@@ -727,8 +745,8 @@ onUnmounted(() => {
 
 .event-card__item + .event-card__item {
 	margin-top: 10px;
-	/* padding-top: 18px;
-	border-top: 1px solid rgb(18 67 96 / 12%); */
+	padding-top: 10px;
+	/* border-top: 1px solid rgb(18 67 96 / 12%); */
 }
 
 .event-card img {
@@ -738,7 +756,9 @@ onUnmounted(() => {
 	margin-top: 9px;
 	border-radius: 8px;
 }
-
+.event-card__item + .event-card__item p{
+    /* margin-top: 10px; */
+}
 .timeline-footer {
 	position: absolute;
 	right: 0;

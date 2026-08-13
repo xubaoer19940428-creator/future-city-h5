@@ -70,7 +70,7 @@ When a `.codegraph/` directory exists at the repository root, use CodeGraph befo
 ## Route and state contract
 
 - `/quiz` accepts `step=profile` to open the identity/year form directly. It also restores a valid `identity` and a `year` in the inclusive 2009–2026 range when those query values are present.
-- The canonical identity values are exactly: `政府机构人员`, `集团干部员工`, `入驻企业员工`, `区域居民`, and `关心关注者`. Keep the compatibility aliases in `src/data/resultProfiles.js`, but do not display the longer legacy labels as the select options.
+- The canonical identity values are exactly: `未来科学城相关政府机构人员`, `未来科学城集团干部员工`, `未来科学城入驻企业员工`, `未来科学城区域居民`, and `未来科学城关心关注者`. Display these full labels in the Quiz selector. Keep the former short values (`政府机构人员`, `集团干部员工`, `入驻企业员工`, `区域居民`, and `关心关注者`) plus `政府工作人员` as compatibility aliases so existing URLs and shared Results still normalize correctly.
 - Submitting Quiz uses `router.replace()` and opens `/timeline?year=<2009-2026>&identity=<canonical identity>`. Timeline back navigation returns to `/quiz?step=profile` while retaining the active year and identity.
 - The Timeline 2026 next-button label is `查看我的基因图谱`. It opens Result with `year`, `identity`, `trait`, and `description`; the last two are persisted random indices from 0 through 2.
 - `/result` normalizes invalid input, generates missing trait/description indices once, and immediately replaces the URL with a stable query. Refreshing, going back to Timeline, and sharing must preserve the same result rather than rerolling it. `再测一次` returns to `/quiz?step=profile`.
