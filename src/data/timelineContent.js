@@ -37,7 +37,7 @@ export const timelineContent = [
 		year: 2011,
 		title: '扎根',
 		subtitle: '从规划图纸到土地，落地生根。',
-		events: [createEvent('7月', ['土沟村、鲁疃村、北七家村、岭上村共计2000余宗宅基地完成拆迁工作。']), createEvent('9月', ['公司首个招拍挂二级项目未来视界拿地成交。'])],
+		events: [createEvent('7月', ['土沟村、鲁疃村、北七家村、岭上村共计2000余宗宅基地完成拆迁工作。']), createEvent('9月', ['公司首个招拍挂二级项目未来视界拿地成交。'], '/assets/timeline/2011-09.jpg')],
 	},
 	{
 		year: 2012,
