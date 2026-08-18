@@ -113,6 +113,16 @@ let autoScrollLastTime = 0
 let autoScrollCancelled = false
 
 const requestedYear = Number(route.query.year)
+const selectedYear = computed(() => {
+	if (
+		Number.isInteger(requestedYear) &&
+		requestedYear >= FIRST_TIMELINE_YEAR &&
+		requestedYear <= FIRST_TIMELINE_YEAR + timelineContent.length - 1
+	) {
+		return requestedYear
+	}
+	return currentYear.value
+})
 const initialIndex = computed(() => {
 	if (!Number.isInteger(requestedYear)) return 0
 	return Math.min(Math.max(requestedYear - FIRST_TIMELINE_YEAR, 0), timelineContent.length - 1)
@@ -448,7 +458,7 @@ const goBack = () => {
 		name: 'Quiz',
 		query: {
 			step: 'profile',
-			year: String(currentYear.value),
+			year: String(selectedYear.value),
 			...identityQuery(),
 		},
 	})
@@ -458,7 +468,7 @@ const showResult = () => {
 	router.replace({
 		name: 'Result',
 		query: {
-			year: String(currentYear.value),
+			year: String(selectedYear.value),
 			...identityQuery(),
 			trait: String(createRandomResultIndex()),
 			description: String(createRandomResultIndex()),
